@@ -138,11 +138,14 @@ export default function MediaDetailModal({
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-end gap-3">
               {media.posterUrl && (
-                <div className="w-16 h-24 rounded-lg overflow-hidden border-2 border-gray-900 shadow-lg shrink-0 -mb-8 bg-gray-800">
+                <div className="w-16 h-24 rounded-lg overflow-hidden border-2 border-gray-900 shadow-lg shrink-0 -mb-8 bg-gray-800 relative">
+                  <div className="absolute inset-0 flex items-center justify-center z-0">
+                    <span className="text-lg font-bold text-gray-600">{media.title[0]}</span>
+                  </div>
                   <img
                     src={media.posterUrl}
                     alt=""
-                    className="w-full h-full object-cover"
+                    className="relative z-10 w-full h-full object-cover"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 </div>

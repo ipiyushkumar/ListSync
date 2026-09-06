@@ -156,8 +156,14 @@ export default function SettingsPage() {
 
   /* ── Load data ────────────────────────────────────────────── */
   useEffect(() => {
-    fetch('/api/settings').then((r) => r.json()).then(setSettings).catch(() => showToast('error', 'Failed to load settings'));
-    fetch('/api/connectors').then((r) => r.json()).then(setConnectors).catch(() => showToast('error', 'Failed to load connectors'));
+    fetch('/api/settings')
+      .then((r) => { if (!r.ok) throw new Error('Failed to load settings'); return r.json(); })
+      .then(setSettings)
+      .catch(() => showToast('error', 'Failed to load settings'));
+    fetch('/api/connectors')
+      .then((r) => { if (!r.ok) throw new Error('Failed to load connectors'); return r.json(); })
+      .then(setConnectors)
+      .catch(() => showToast('error', 'Failed to load connectors'));
   }, [showToast]);
 
   /* ── Derived helpers ──────────────────────────────────────── */
