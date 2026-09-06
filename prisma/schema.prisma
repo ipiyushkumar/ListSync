@@ -22,7 +22,7 @@ model Media {
   genres        String?  // JSON array stored as string
   platforms     String?  // JSON array stored as string
   externalId    String?  // ID from external API (MAL, AniList, TMDB, etc.)
-  externalSource String? // jikan, anilist, tmdb, lastfm, spotify
+  externalSource String? // jikan, anilist, tmdb
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   activities    Activity[]

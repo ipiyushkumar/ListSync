@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate action
-    const validActions = ['watched', 'read', 'listened'];
+    const validActions = ['started', 'paused', 'completed', 'episode_watched', 'watched', 'read', 'listened'];
     if (!validActions.includes(action)) {
       return NextResponse.json(
         { error: `action must be one of: ${validActions.join(', ')}` },
