@@ -1,16 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Film, BookOpen, Clapperboard, Tv, Music, FileText, Star } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  Film, BookOpen, Tv, Music, Clapperboard, Search,
+  ArrowRight, Star, Clock, CheckCircle2, Eye, Pause, Ban,
+  TrendingUp, BarChart3,
+} from 'lucide-react';
+import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 
-interface MediaStats {
-  total: number;
-  byCategory: Record<string, number>;
-  byStatus: Record<string, number>;
-}
-
-interface RecentMedia {
+interface MediaItem {
   id: string;
   title: string;
   category: string;
@@ -19,154 +18,305 @@ interface RecentMedia {
   currentEp: number;
   totalEpisodes: number | null;
   rating: number | null;
+  genres: string | null;
+  createdAt: string;
   updatedAt: string;
 }
 
+const CATEGORY_META: Record<string, { icon: LucideIcon; label: string }> = {
+  anime: { icon: Film, label: 'Anime' },
+  manhwa: { icon: BookOpen, label: 'Manhwa' },
+  movie: { icon: Clapperboard, label: 'Movies' },
+  tv: { icon: Tv, label: 'TV Shows' },
+  music: { icon: Music, label: 'Music' },
+};
+
+const STATUS_META: Record<string, { icon: LucideIcon; color: string; dot: string }> = {
+  watching: { icon: Eye, color: 'text-emerald-400', dot: 'bg-emerald-400' },
+  completed: { icon: CheckCircle2, color: 'text-blue-400', dot: 'bg-blue-400' },
+  planned: { icon: Clock, color: 'text-gray-400', dot: 'bg-gray-400' },
+  dropped: { icon: Ban, color: 'text-red-400', dot: 'bg-red-400' },
+  'on-hold': { icon: Pause, color: 'text-amber-400', dot: 'bg-amber-400' },
+  on_hold: { icon: Pause, color: 'text-amber-400', dot: 'bg-amber-400' },
+};
+
+function MiniBar({ value, max }: { value: number; max: number }) {
+  const pct = max > 0 ? (value / max) * 100 : 0;
+  return (
+    <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+      <div
+        className="h-full bg-purple-500/60 rounded-full transition-all duration-300"
+        style={{ width: `${pct}%` }}
+      />
+    </div>
+  );
+}
+
+function SkeletonDashboard() {
+  return (
+    <div className="p-4 space-y-4 animate-pulse">
+      <div className="h-5 bg-gray-800/50 rounded w-32" />
+      <div className="grid grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-20 bg-gray-800/30 rounded-lg" />
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-2 h-48 bg-gray-800/30 rounded-lg" />
+        <div className="h-48 bg-gray-800/30 rounded-lg" />
+      </div>
+      <div className="h-64 bg-gray-800/30 rounded-lg" />
+    </div>
+  );
+}
+
 export default function Dashboard() {
-  const [stats, setStats] = useState<MediaStats | null>(null);
-  const [recent, setRecent] = useState<RecentMedia[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStats();
-    fetchRecent();
+    fetch('/api/media')
+      .then(r => r.json())
+      .then(data => setMedia(Array.isArray(data) ? data : data.items || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  const fetchStats = async () => {
-    try {
-      const res = await fetch('/api/media');
-      const data = await res.json();
-      const byCategory: Record<string, number> = {};
-      const byStatus: Record<string, number> = {};
-      data.forEach((item: any) => {
-        byCategory[item.category] = (byCategory[item.category] || 0) + 1;
-        byStatus[item.status] = (byStatus[item.status] || 0) + 1;
-      });
-      setStats({ total: data.length, byCategory, byStatus });
-    } catch (error) {
-      console.error('Failed to fetch stats:', error);
-    }
-  };
+  const stats = useMemo(() => {
+    const byCategory: Record<string, number> = {};
+    const byStatus: Record<string, number> = {};
+    let totalRating = 0;
+    let ratedCount = 0;
 
-  const fetchRecent = async () => {
-    try {
-      const res = await fetch('/api/media?limit=6');
-      const data = await res.json();
-      setRecent(data);
-    } catch (error) {
-      console.error('Failed to fetch recent:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    media.forEach(m => {
+      byCategory[m.category] = (byCategory[m.category] || 0) + 1;
+      byStatus[m.status] = (byStatus[m.status] || 0) + 1;
+      if (m.rating && m.rating > 0) {
+        totalRating += m.rating > 10 ? m.rating / 10 : m.rating;
+        ratedCount++;
+      }
+    });
 
-  const categoryIcons: Record<string, LucideIcon> = {
-    anime: Film, manhwa: BookOpen, movie: Clapperboard, tv: Tv, music: Music
-  };
+    return {
+      total: media.length,
+      byCategory,
+      byStatus,
+      avgRating: ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : '—',
+      watching: byStatus['watching'] || 0,
+      completed: byStatus['completed'] || 0,
+      planned: byStatus['planned'] || 0,
+    };
+  }, [media]);
 
-  const categoryColors: Record<string, string> = {
-    anime: 'from-pink-500 to-purple-600',
-    manhwa: 'from-blue-500 to-cyan-600',
-    movie: 'from-yellow-500 to-orange-600',
-    tv: 'from-green-500 to-emerald-600',
-    music: 'from-red-500 to-pink-600'
-  };
+  const recentItems = useMemo(() => {
+    return [...media]
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .slice(0, 8);
+  }, [media]);
 
-  const statusColors: Record<string, string> = {
-    watching: 'bg-blue-500/20 text-blue-400',
-    completed: 'bg-green-500/20 text-green-400',
-    dropped: 'bg-red-500/20 text-red-400',
-    planned: 'bg-gray-500/20 text-gray-400',
-    on_hold: 'bg-yellow-500/20 text-yellow-400'
-  };
+  const maxCategoryCount = useMemo(() => {
+    return Math.max(...Object.values(stats.byCategory), 1);
+  }, [stats.byCategory]);
+
+  if (loading) return <SkeletonDashboard />;
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-gray-400">Track all your media in one place</p>
+    <div className="p-4 space-y-4">
+      {/* Page header — compact */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-base font-semibold text-white tracking-tight">Dashboard</h1>
+        <Link
+          href="/search"
+          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+        >
+          <Search className="w-3 h-3" />
+          <span>Search</span>
+          <kbd className="px-1 py-0.5 bg-gray-800 rounded text-[10px] font-mono text-gray-500">/</kbd>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        {Object.entries(categoryIcons).map(([category, Icon]) => (
-          <div key={category} className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-all">
-            <div className="flex items-center gap-3 mb-4">
-              <Icon className="w-6 h-6" />
-              <span className="text-gray-400 capitalize">{category === 'tv' ? 'TV Shows' : category}</span>
-            </div>
-            <div className="text-3xl font-bold text-white">{stats?.byCategory[category] || 0}</div>
+      {/* Metric strip — hero + supports */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Hero: Total items */}
+        <div className="col-span-2 sm:col-span-1 bg-gray-900/80 border border-purple-500/20 rounded-lg p-4">
+          <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total items</div>
+          <div className="text-3xl font-bold text-white tabular-nums tracking-tight">{stats.total}</div>
+          <div className="text-[11px] text-gray-600 mt-1 font-mono tabular-nums">
+            {stats.watching} watching · {stats.completed} done
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-8">
-        <h2 className="text-xl font-semibold text-white mb-4">Status Overview</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {Object.entries(stats?.byStatus || {}).map(([status, count]) => (
-            <div key={status} className="text-center">
-              <div className={`inline-block px-4 py-2 rounded-lg ${statusColors[status] || 'bg-gray-500/20 text-gray-400'}`}>
-                <span className="text-2xl font-bold">{count}</span>
-              </div>
-              <div className="text-gray-400 text-sm mt-2 capitalize">{status.replace('_', ' ')}</div>
-            </div>
-          ))}
+        {/* Supporting metrics */}
+        <div className="bg-gray-900/50 border border-gray-800/50 rounded-lg p-4">
+          <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Watching</div>
+          <div className="text-2xl font-bold text-emerald-400 tabular-nums tracking-tight">{stats.watching}</div>
+          <div className="mt-2">
+            <MiniBar value={stats.watching} max={stats.total} />
+          </div>
+        </div>
+
+        <div className="bg-gray-900/50 border border-gray-800/50 rounded-lg p-4">
+          <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Completed</div>
+          <div className="text-2xl font-bold text-blue-400 tabular-nums tracking-tight">{stats.completed}</div>
+          <div className="mt-2">
+            <MiniBar value={stats.completed} max={stats.total} />
+          </div>
+        </div>
+
+        <div className="bg-gray-900/50 border border-gray-800/50 rounded-lg p-4">
+          <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Avg rating</div>
+          <div className="text-2xl font-bold text-amber-400 tabular-nums tracking-tight flex items-center gap-1.5">
+            {stats.avgRating}
+            {stats.avgRating !== '—' && <Star className="w-4 h-4 text-amber-400/60 fill-current" />}
+          </div>
+          <div className="text-[11px] text-gray-600 mt-1 font-mono">
+            {Object.keys(stats.byCategory).length} categories
+          </div>
         </div>
       </div>
 
-      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h2 className="text-xl font-semibold text-white mb-4">Recently Updated</h2>
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+      {/* Category breakdown + Status overview — side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {/* Category horizontal bars */}
+        <div className="lg:col-span-2 bg-gray-900/50 border border-gray-800/50 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-medium text-gray-400">By category</h2>
+            <BarChart3 className="w-3.5 h-3.5 text-gray-600" />
           </div>
-        ) : recent.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <FileText className="w-10 h-10 mx-auto mb-4" />
-            <p>No media added yet</p>
-            <p className="text-sm mt-2">Search and add your first title to get started</p>
+          <div className="space-y-2.5">
+            {Object.entries(stats.byCategory)
+              .sort((a, b) => b[1] - a[1])
+              .map(([cat, count]) => {
+                const meta = CATEGORY_META[cat] || { icon: Clapperboard, label: cat };
+                const Icon = meta.icon;
+                return (
+                  <div key={cat} className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 w-24 shrink-0">
+                      <Icon className="w-3.5 h-3.5 text-gray-500" />
+                      <span className="text-xs text-gray-400 truncate">{meta.label}</span>
+                    </div>
+                    <div className="flex-1">
+                      <MiniBar value={count} max={maxCategoryCount} />
+                    </div>
+                    <span className="text-xs font-mono text-gray-500 tabular-nums w-8 text-right">{count}</span>
+                  </div>
+                );
+              })}
+            {Object.keys(stats.byCategory).length === 0 && (
+              <div className="text-xs text-gray-600 py-4 text-center">No data yet</div>
+            )}
+          </div>
+        </div>
+
+        {/* Status overview — compact list */}
+        <div className="bg-gray-900/50 border border-gray-800/50 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-medium text-gray-400">By status</h2>
+            <TrendingUp className="w-3.5 h-3.5 text-gray-600" />
+          </div>
+          <div className="space-y-2">
+            {Object.entries(stats.byStatus)
+              .sort((a, b) => b[1] - a[1])
+              .map(([status, count]) => {
+                const meta = STATUS_META[status] || { color: 'text-gray-400', dot: 'bg-gray-400' };
+                return (
+                  <div key={status} className="flex items-center justify-between py-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+                      <span className="text-xs text-gray-400 capitalize">{status.replace(/_/g, '-')}</span>
+                    </div>
+                    <span className="text-xs font-mono text-gray-500 tabular-nums">{count}</span>
+                  </div>
+                );
+              })}
+            {Object.keys(stats.byStatus).length === 0 && (
+              <div className="text-xs text-gray-600 py-4 text-center">No data yet</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent items — table */}
+      <div className="bg-gray-900/50 border border-gray-800/50 rounded-lg">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800/50">
+          <h2 className="text-xs font-medium text-gray-400">Recently updated</h2>
+          <span className="text-[10px] font-mono text-gray-600 tabular-nums">{recentItems.length} items</span>
+        </div>
+
+        {recentItems.length === 0 ? (
+          <div className="px-4 py-12 text-center">
+            <p className="text-xs text-gray-500">No media added yet</p>
+            <Link href="/search" className="text-xs text-purple-400 hover:text-purple-300 mt-1 inline-flex items-center gap-1 transition-colors">
+              Search and add your first title <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recent.map((item) => {
-              const CategoryIcon = categoryIcons[item.category] || FileText;
-              return (
-                <div key={item.id} className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-all">
-                  <div className="flex gap-4">
-                    <div className="w-16 h-24 rounded-lg overflow-hidden flex-shrink-0">
-                      {item.posterUrl ? (
-                        <img src={item.posterUrl} alt={item.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className={`w-full h-full bg-gradient-to-br ${categoryColors[item.category] || 'from-gray-600 to-gray-800'} flex items-center justify-center`}>
-                          <CategoryIcon className="w-8 h-8 text-white/70" />
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-800/50">
+                  <th className="px-4 py-2 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                  <th className="px-4 py-2 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="px-4 py-2 text-[10px] font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-2 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Progress</th>
+                  <th className="px-4 py-2 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Rating</th>
+                  <th className="px-4 py-2 text-[10px] font-medium text-gray-500 uppercase tracking-wider text-right">Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentItems.map(item => {
+                  const statusMeta = STATUS_META[item.status] || { dot: 'bg-gray-400', color: 'text-gray-400' };
+                  const catMeta = CATEGORY_META[item.category] || { icon: Clapperboard, label: item.category };
+                  const CatIcon = catMeta.icon;
+                  const score = item.rating ? (item.rating > 10 ? (item.rating / 10).toFixed(1) : item.rating.toFixed(1)) : '—';
+                  const progress = item.totalEpisodes ? `${item.currentEp || 0}/${item.totalEpisodes}` : '—';
+                  const updated = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors duration-80"
+                    >
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-6 h-8 rounded overflow-hidden bg-gray-800 shrink-0">
+                            {item.posterUrl ? (
+                              <img src={item.posterUrl} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <CatIcon className="w-3 h-3 text-gray-600" />
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-xs text-white font-medium truncate max-w-[200px]">{item.title}</span>
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-medium truncate">{item.title}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`px-2 py-0.5 rounded text-xs ${statusColors[item.status] || 'bg-gray-500/20 text-gray-400'}`}>
-                          {item.status.replace('_', ' ')}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span className="text-[11px] text-gray-500 capitalize">{catMeta.label}</span>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusMeta.dot}`} />
+                          <span className="text-[11px] text-gray-400 capitalize">{item.status.replace(/_/g, '-')}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="text-[11px] font-mono text-gray-500 tabular-nums">{progress}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="text-[11px] font-mono text-gray-500 tabular-nums flex items-center justify-end gap-1">
+                          {score !== '—' && <Star className="w-2.5 h-2.5 text-amber-400/60 fill-current" />}
+                          {score}
                         </span>
-                        <span className="text-gray-500 text-xs capitalize">{item.category}</span>
-                      </div>
-                      {item.totalEpisodes && (
-                        <div className="mt-2 text-sm text-gray-400">
-                          EP {item.currentEp || 0} / {item.totalEpisodes}
-                        </div>
-                      )}
-                      {item.rating && (
-                        <div className="mt-1 text-yellow-400 text-sm flex items-center gap-1">
-                          {Array.from({ length: Math.floor(item.rating / 2) }).map((_, i) => (
-                            <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                          ))}
-                          <span className="ml-1">{item.rating}/10</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <span className="text-[10px] font-mono text-gray-600 tabular-nums">{updated}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

@@ -67,19 +67,21 @@ export async function POST(request: NextRequest) {
   const updates: Array<{ key: string; value: string }> = [];
 
   // API keys — only update if non-empty and not masked
+  // Detect any masked value: contains bullet chars or is the placeholder mask
+  const isMasked = (v: string) => v === MASK || v.includes('•') || v.includes('\u2022');
   const tmdb = body.apiKeys?.tmdb;
-  if (tmdb && tmdb !== MASK) updates.push({ key: 'apiKeys.tmdb', value: tmdb });
+  if (tmdb && !isMasked(tmdb)) updates.push({ key: 'apiKeys.tmdb', value: tmdb });
 
   const lastfm = body.apiKeys?.lastfm;
-  if (lastfm && lastfm !== MASK) updates.push({ key: 'apiKeys.lastfm', value: lastfm });
+  if (lastfm && !isMasked(lastfm)) updates.push({ key: 'apiKeys.lastfm', value: lastfm });
 
   const anilist = body.apiKeys?.anilist;
-  if (anilist && anilist !== MASK) updates.push({ key: 'apiKeys.anilist', value: anilist });
+  if (anilist && !isMasked(anilist)) updates.push({ key: 'apiKeys.anilist', value: anilist });
 
   // AI settings
   if (body.ai?.provider) updates.push({ key: 'ai.provider', value: body.ai.provider });
   const aiKey = body.ai?.apiKey;
-  if (aiKey && aiKey !== MASK) updates.push({ key: 'ai.apiKey', value: aiKey });
+  if (aiKey && !isMasked(aiKey)) updates.push({ key: 'ai.apiKey', value: aiKey });
   if (body.ai?.model) updates.push({ key: 'ai.model', value: body.ai.model });
 
   // Auto-detection

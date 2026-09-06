@@ -1,19 +1,69 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Star, Tv, BookOpen, Calendar, FileText } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import {
+  Search, Star, Tv, BookOpen, Calendar, FileText, Plus,
+  Check, Loader2, Sparkles, Film, Disc, ChevronDown,
+} from 'lucide-react';
+import Toast from '@/components/Toast';
 
 interface SearchResult {
-  id: number | string;
-  title: string;
-  description: string;
-  image: string;
+  id: string | number;
+  title?: string;
+  name?: string;
+  description?: string;
+  overview?: string;
   category: string;
-  episodes?: number;
-  chapters?: number;
+  coverImage?: string;
+  image?: string;
+  poster_path?: string;
+  rating?: number;
+  averageScore?: number;
   score?: number;
-  year?: number;
+  vote_average?: number;
+  totalEpisodes?: number;
+  episodes?: number;
+  number_of_episodes?: number;
+  releaseDate?: string;
   genres?: string[];
+  source?: string;
+}
+
+interface LibraryEntry {
+  id: string;
+  title: string;
+  category: string;
+}
+
+const CATEGORY_META: Record<string, { label: string; icon: typeof Film; color: string; bg: string }> = {
+  anime: { label: 'Anime', icon: Sparkles, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  manhwa: { label: 'Manhwa', icon: BookOpen, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  movie: { label: 'Movie', icon: Film, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+  tv: { label: 'TV Show', icon: Tv, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+};
+
+const CATEGORIES = ['all', 'anime', 'manhwa', 'movie', 'tv'] as const;
+
+function normalizeScore(score: number | undefined): string {
+  if (score == null) return '';
+  const s = score > 10 ? score / 10 : score;
+  return s.toFixed(1);
+}
+
+function SkeletonCard() {
+  return (
+    <div className="bg-gray-900/50 rounded-xl border border-gray-800/50 overflow-hidden animate-pulse">
+      <div className="aspect-[3/4] bg-gray-800/50" />
+      <div className="p-4 space-y-3">
+        <div className="h-4 bg-gray-800 rounded w-3/4" />
+        <div className="h-3 bg-gray-800/60 rounded w-1/2" />
+        <div className="flex gap-2">
+          <div className="h-5 bg-gray-800/40 rounded-full w-12" />
+          <div className="h-5 bg-gray-800/40 rounded-full w-16" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function SearchPage() {
@@ -21,160 +71,309 @@ export default function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<string>('all');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const [library, setLibrary] = useState<LibraryEntry[]>([]);
+  const [searched, setSearched] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
+  // Fetch library to detect duplicates
+  useEffect(() => {
+    fetch('/api/media')
+      .then(r => r.json())
+      .then(data => {
+        const items = Array.isArray(data) ? data : data.items || [];
+        setLibrary(items.map((m: any) => ({ id: m.id, title: m.title, category: m.category })));
+      })
+      .catch(() => {});
+  }, []);
+
+  const isInLibrary = useCallback((item: SearchResult) => {
+    const title = (item.title || item.name || '').toLowerCase().trim();
+    return library.some(
+      e => e.title.toLowerCase().trim() === title && e.category === item.category
+    );
+  }, [library]);
+
+  const handleSearch = useCallback(async () => {
+    const q = query.trim();
+    if (!q) return;
+
     setLoading(true);
+    setResults([]);
+    setSearched(true);
+
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}${filter !== 'all' ? `&category=${filter}` : ''}`);
+      const url = `/api/search?q=${encodeURIComponent(q)}${filter !== 'all' ? `&category=${filter}` : ''}`;
+      const res = await fetch(url);
       const data = await res.json();
-      setResults(data.results || []);
-    } catch (error) {
-      console.error('Search failed:', error);
+      const raw: SearchResult[] = Array.isArray(data) ? data : data.results || data.data || [];
+      setResults(raw);
+    } catch (err: any) {
+      setToast({ message: `Search failed: ${err.message}`, type: 'error' });
     } finally {
       setLoading(false);
     }
-  };
+  }, [query, filter]);
 
   const addToLibrary = async (item: SearchResult) => {
+    const title = item.title || item.name || 'Unknown';
     try {
-      await fetch('/api/media', {
+      const res = await fetch('/api/media', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: item.title,
-          description: item.description,
+          title,
+          description: (item.description || item.overview || '').replace(/<[^>]*>/g, ''),
           category: item.category,
           status: 'planned',
-          coverImage: item.image,
-          totalEpisodes: item.episodes,
+          posterUrl: item.coverImage || item.image || (item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : ''),
+          totalEpisodes: item.totalEpisodes || item.episodes || item.number_of_episodes || 0,
+          currentEp: 0,
           externalId: String(item.id),
-          externalSource: item.category === 'anime' ? 'jikan' : item.category === 'manhwa' ? 'anilist' : 'tmdb',
-          genres: item.genres || [],
-          rating: item.score,
+          externalSource: item.source || item.category,
+          genres: JSON.stringify(item.genres || []),
+          platforms: '[]',
+          rating: item.rating || item.averageScore || item.score || item.vote_average || 0,
         }),
       });
-      alert(`${item.title} added to your library!`);
-    } catch (error) {
-      console.error('Failed to add:', error);
+      if (res.ok) {
+        const newEntry = { id: String(item.id), title, category: item.category };
+        setLibrary(prev => [...prev, newEntry]);
+        setAddedIds(prev => new Set(prev).add(`${item.id}-${item.category}`));
+        setToast({ message: `Added "${title}" to library`, type: 'success' });
+      } else {
+        const errText = await res.text();
+        setToast({ message: `Failed to add: ${errText}`, type: 'error' });
+      }
+    } catch (err: any) {
+      setToast({ message: `Add error: ${err.message}`, type: 'error' });
     }
   };
 
-  const categoryColors: Record<string, string> = {
-    anime: 'bg-pink-500/20 text-pink-400',
-    manhwa: 'bg-blue-500/20 text-blue-400',
-    movie: 'bg-yellow-500/20 text-yellow-400',
-    tv: 'bg-green-500/20 text-green-400',
-  };
+  const totalResults = results.length;
+  const sources = new Set(results.map(r => r.source || r.category));
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-7xl mx-auto">
+      {/* Toast */}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
+
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2">Search</h1>
-        <p className="text-gray-400">Find anime, manhwa, movies, and TV shows</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-white mb-1">Search</h1>
+        <p className="text-sm text-gray-500">Find anime, manhwa, movies, and TV shows across AniList, Jikan, and TMDB</p>
       </div>
 
-      <div className="flex gap-4 mb-6">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder="Search for any title..."
-          className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-6 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors text-lg"
-        />
-        <button
-          onClick={handleSearch}
-          disabled={loading}
-          className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 text-white px-8 py-4 rounded-xl font-medium transition-colors"
-        >
-          {loading ? 'Searching...' : 'Search'}
-        </button>
-      </div>
-
-      <div className="flex gap-2 mb-6">
-        {['all', 'anime', 'manhwa', 'movie', 'tv'].map((cat) => (
+      {/* Search bar + filters */}
+      <div className="mb-6">
+        <div className="flex gap-2 mb-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Search for any title..."
+              className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors font-sans"
+            />
+            {query && (
+              <button
+                onClick={() => { setQuery(''); inputRef.current?.focus(); }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                <span className="text-xs">ESC</span>
+              </button>
+            )}
+          </div>
           <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === cat
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
+            onClick={handleSearch}
+            disabled={loading || !query.trim()}
+            className="bg-white text-gray-900 hover:bg-gray-100 disabled:bg-gray-800 disabled:text-gray-500 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 shrink-0"
           >
-            {cat === 'all' ? 'All' : cat === 'tv' ? 'TV Shows' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+            Search
           </button>
-        ))}
+        </div>
+
+        {/* Category pills */}
+        <div className="flex gap-1.5">
+          {CATEGORIES.map((cat) => {
+            const meta = cat === 'all' ? null : CATEGORY_META[cat];
+            const Icon = meta?.icon;
+            return (
+              <button
+                key={cat}
+                onClick={() => setFilter(cat)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                  filter === cat
+                    ? 'bg-white/10 text-white'
+                    : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                }`}
+              >
+                {Icon && <Icon className="w-3 h-3" />}
+                {cat === 'all' ? 'All' : meta?.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
-        </div>
-      ) : results.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
-          <Search className="w-16 h-16 mx-auto mb-4" />
-          <p className="text-xl">Search for your favorite media</p>
-          <p className="text-sm mt-2">Results from Jikan, AniList, and TMDB</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {results.map((item, idx) => (
-            <div key={idx} className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-gray-700 transition-all">
-              <div className="relative h-48 bg-gray-800">
-                {item.image ? (
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-600">
-                    <FileText className="w-12 h-12 text-white/50" />
-                  </div>
-                )}
-                <span className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium ${categoryColors[item.category] || 'bg-gray-500/20 text-gray-400'}`}>
-                  {item.category === 'tv' ? 'TV Show' : item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+      {/* Result count */}
+      {searched && !loading && (
+        <div className="mb-4 flex items-center gap-2 text-xs text-gray-500">
+          <span>{totalResults} result{totalResults !== 1 ? 's' : ''}</span>
+          {sources.size > 0 && (
+            <>
+              <span className="text-gray-700">from</span>
+              {Array.from(sources).map(s => (
+                <span key={s} className="px-1.5 py-0.5 bg-gray-800/60 rounded text-gray-400 text-[10px] font-medium uppercase tracking-wider">
+                  {s}
                 </span>
-              </div>
-              <div className="p-4">
-                <h3 className="text-white font-semibold truncate">{item.title}</h3>
-                <p className="text-gray-400 text-sm mt-1 line-clamp-2">{item.description || 'No description available'}</p>
-                <div className="flex items-center gap-3 mt-3 text-sm text-gray-500">
-                  {item.score && (
-                    <span className="flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 text-yellow-400 fill-current" /> {item.score}
+              ))}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      )}
+
+      {/* Empty state — before any search */}
+      {!loading && !searched && (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-12 h-12 rounded-xl bg-gray-800/50 flex items-center justify-center mb-4">
+            <Search className="w-5 h-5 text-gray-600" />
+          </div>
+          <p className="text-sm text-gray-400 mb-1">Search across multiple sources</p>
+          <p className="text-xs text-gray-600">Anime from AniList &middot; Manhwa from AniList &middot; Movies & TV from TMDB</p>
+        </div>
+      )}
+
+      {/* Empty state — no results */}
+      {!loading && searched && results.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-12 h-12 rounded-xl bg-gray-800/50 flex items-center justify-center mb-4">
+            <FileText className="w-5 h-5 text-gray-600" />
+          </div>
+          <p className="text-sm text-gray-400">No results found</p>
+          <p className="text-xs text-gray-600 mt-1">Try a different search term or category</p>
+        </div>
+      )}
+
+      {/* Results grid */}
+      {!loading && results.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {results.map((item) => {
+            const title = item.title || item.name || 'Unknown';
+            const image = item.coverImage || item.image || (item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null);
+            const score = item.rating || item.averageScore || item.score || item.vote_average;
+            const episodes = item.totalEpisodes || item.episodes || item.number_of_episodes;
+            const category = item.category || 'unknown';
+            const meta = CATEGORY_META[category] || { label: category, icon: FileText, color: 'text-gray-400', bg: 'bg-gray-500/10' };
+            const inLibrary = isInLibrary(item);
+            const justAdded = addedIds.has(`${item.id}-${item.category}`);
+
+            return (
+              <div
+                key={`${item.id}-${item.category}`}
+                className="group bg-gray-900/60 rounded-lg border border-gray-800/50 overflow-hidden hover:border-gray-700/50 transition-all duration-200"
+              >
+                {/* Poster */}
+                <div className="relative aspect-[3/4] bg-gray-800/30 overflow-hidden">
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <meta.icon className="w-8 h-8 text-gray-700" />
+                    </div>
+                  )}
+
+                  {/* Category badge */}
+                  <span className={`absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-medium ${meta.bg} ${meta.color}`}>
+                    {meta.label}
+                  </span>
+
+                  {/* Score badge */}
+                  {score != null && (
+                    <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-sm text-[10px] font-medium text-white flex items-center gap-0.5">
+                      <Star className="w-2.5 h-2.5 text-amber-400 fill-current" />
+                      {normalizeScore(score)}
                     </span>
                   )}
-                  {item.episodes && (
-                    <span className="flex items-center gap-1">
-                      <Tv className="w-3.5 h-3.5" /> {item.episodes} eps
-                    </span>
-                  )}
-                  {item.chapters && (
-                    <span className="flex items-center gap-1">
-                      <BookOpen className="w-3.5 h-3.5" /> {item.chapters} ch
-                    </span>
-                  )}
-                  {item.year && (
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" /> {item.year}
-                    </span>
+
+                  {/* Hover overlay with action */}
+                  <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => addToLibrary(item)}
+                      disabled={inLibrary || justAdded}
+                      className={`w-full py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                        inLibrary || justAdded
+                          ? 'bg-emerald-500/20 text-emerald-400 cursor-default'
+                          : 'bg-white text-gray-900 hover:bg-gray-100'
+                      }`}
+                    >
+                      {inLibrary || justAdded ? (
+                        <>
+                          <Check className="w-3 h-3" />
+                          In library
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3 h-3" />
+                          Add to library
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="p-3">
+                  <h3 className="text-sm font-medium text-white truncate leading-snug">{title}</h3>
+                  <div className="flex items-center gap-2 mt-1.5 text-[11px] text-gray-500">
+                    {episodes != null && (
+                      <span className="flex items-center gap-0.5">
+                        <Tv className="w-2.5 h-2.5" /> {episodes} ep
+                      </span>
+                    )}
+                    {item.releaseDate && (
+                      <span className="flex items-center gap-0.5">
+                        <Calendar className="w-2.5 h-2.5" /> {item.releaseDate}
+                      </span>
+                    )}
+                  </div>
+                  {item.genres && item.genres.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {item.genres.slice(0, 2).map((g: string, i: number) => (
+                        <span key={i} className="px-1.5 py-0.5 bg-gray-800/60 text-gray-500 text-[10px] rounded">
+                          {g}
+                        </span>
+                      ))}
+                      {item.genres.length > 2 && (
+                        <span className="px-1 py-0.5 text-gray-600 text-[10px]">+{item.genres.length - 2}</span>
+                      )}
+                    </div>
                   )}
                 </div>
-                {item.genres && item.genres.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {item.genres.slice(0, 3).map((g, i) => (
-                      <span key={i} className="px-2 py-0.5 bg-gray-800 text-gray-400 text-xs rounded">{g}</span>
-                    ))}
-                  </div>
-                )}
-                <button
-                  onClick={() => addToLibrary(item)}
-                  className="mt-4 w-full bg-purple-600/20 text-purple-400 hover:bg-purple-600 hover:text-white py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  + Add to Library
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

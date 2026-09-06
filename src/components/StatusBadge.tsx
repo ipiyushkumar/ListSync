@@ -7,11 +7,12 @@ interface StatusBadgeProps {
 }
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  watching: { label: 'Watching', color: 'bg-blue-600 text-blue-100' },
-  completed: { label: 'Completed', color: 'bg-green-600 text-green-100' },
-  dropped: { label: 'Dropped', color: 'bg-red-600 text-red-100' },
-  planned: { label: 'Planned', color: 'bg-gray-600 text-gray-100' },
-  on_hold: { label: 'On Hold', color: 'bg-yellow-600 text-yellow-100' },
+  watching: { label: 'Watching', color: 'bg-emerald-500/20 text-emerald-400' },
+  completed: { label: 'Completed', color: 'bg-blue-500/20 text-blue-400' },
+  dropped: { label: 'Dropped', color: 'bg-red-500/20 text-red-400' },
+  planned: { label: 'Planned', color: 'bg-gray-500/20 text-gray-400' },
+  on_hold: { label: 'On hold', color: 'bg-amber-500/20 text-amber-400' },
+  'on-hold': { label: 'On hold', color: 'bg-amber-500/20 text-amber-400' },
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
@@ -19,7 +20,7 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium ${config.color}`}
     >
       {config.label}
     </span>

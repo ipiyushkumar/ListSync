@@ -24,6 +24,40 @@ export async function GET(request: NextRequest) {
 // POST /api/media
 export async function POST(request: NextRequest) {
   const body = await request.json();
+
+  // Check for existing entry by externalId (if provided) or by title+category
+  let existing = null;
+  if (body.externalId && body.externalSource) {
+    existing = await prisma.media.findFirst({
+      where: { externalId: body.externalId, externalSource: body.externalSource },
+    });
+  }
+  if (!existing && body.title && body.category) {
+    existing = await prisma.media.findFirst({
+      where: {
+        title: { contains: body.title },
+        category: body.category,
+      },
+    });
+  }
+
+  if (existing) {
+    // Update existing entry with new data (merge, don't overwrite user progress)
+    const media = await prisma.media.update({
+      where: { id: existing.id },
+      data: {
+        ...(body.description && { description: body.description }),
+        ...(body.posterUrl || body.coverImage) && { posterUrl: body.posterUrl || body.coverImage },
+        ...(body.totalEpisodes && { totalEpisodes: body.totalEpisodes }),
+        ...(body.rating && { rating: body.rating }),
+        ...(body.genres && { genres: JSON.stringify(body.genres) }),
+        ...(body.releaseDate && { releaseDate: body.releaseDate }),
+        // Don't overwrite status or currentEp — user's progress takes priority
+      },
+    });
+    return NextResponse.json(media);
+  }
+
   const media = await prisma.media.create({
     data: {
       title: body.title,

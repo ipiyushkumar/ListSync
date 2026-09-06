@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 interface SearchResult {
   id: string | number;
@@ -11,6 +12,16 @@ interface SearchResult {
   genres?: string[];
   releaseDate?: string;
   source: string;
+}
+
+// Read API key from SQLite settings table via Prisma
+async function getApiKey(key: string): Promise<string> {
+  try {
+    const row = await prisma.setting.findUnique({ where: { key } });
+    return row?.value || '';
+  } catch {
+    return '';
+  }
 }
 
 // AniList Anime - GraphQL, no key needed
@@ -64,7 +75,7 @@ async function searchJikan(query: string): Promise<SearchResult[]> {
 // AniList (Manhwa/Manga) - GraphQL
 async function searchAniList(query: string): Promise<SearchResult[]> {
   try {
-    const gql = `query($search:String){Page(perPage:5){media(search:$search,type:MANGA,formatIn:[MANHWA,MANGA,MANHUA]){id title{romaji english}description chapters status startDate{year month day}coverImage{large}averageScore genres{format}}}}`;
+    const gql = `query($search:String){Page(perPage:5){media(search:$search,type:MANGA,formatIn:[MANHWA,MANGA,MANHUA]){id title{romaji english}description chapters status startDate{year month day}coverImage{large}averageScore genres}}}`;
     const res = await fetch('https://graphql.anilist.co', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81,7 +92,7 @@ async function searchAniList(query: string): Promise<SearchResult[]> {
       coverImage: (m.coverImage as { large: string })?.large,
       rating: m.averageScore as number,
       totalEpisodes: m.chapters as number,
-      genres: ((m.genres as { format: string }[]) || []).map((g) => g.format),
+      genres: ((m.genres as string[]) || []),
       releaseDate: m.startDate ? `${(m.startDate as { year: number }).year}-${(m.startDate as { month: number }).month}` : undefined,
       source: 'anilist',
     }));
@@ -90,7 +101,7 @@ async function searchAniList(query: string): Promise<SearchResult[]> {
 
 // TMDB (Movies + TV/Web Series) - needs key
 async function searchTMDB(query: string): Promise<SearchResult[]> {
-  const key = process.env.TMDB_API_KEY;
+  const key = process.env.TMDB_API_KEY || await getApiKey('apiKeys.tmdb');
   if (!key) return [];
   const results: SearchResult[] = [];
   try {
