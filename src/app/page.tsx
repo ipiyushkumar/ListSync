@@ -165,6 +165,41 @@ export default function Dashboard() {
     }
   }, []);
 
+  const [heatmapData, setHeatmapData] = useState<{ heatmap: Record<string, number>; currentStreak: number; totalCompleted: number }>({ heatmap: {}, currentStreak: 0, totalCompleted: 0 });
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then(r => r.json())
+      .then(d => setHeatmapData({ heatmap: d.heatmap || {}, currentStreak: d.currentStreak || 0, totalCompleted: d.totalCompleted || 0 }))
+      .catch(() => {});
+  }, []);
+
+  // Build 90-day heatmap grid (7 rows × ~13 columns, like GitHub)
+  const heatmapGrid = useMemo(() => {
+    const now = new Date();
+    const days: { date: string; count: number }[][] = [];
+    let week: { date: string; count: number }[] = [];
+    // Pad start to align with Sunday
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - 89);
+    const startDow = startDate.getDay();
+    for (let i = 0; i < startDow; i++) {
+      week.push({ date: '', count: 0 });
+    }
+    for (let i = 0; i < 90; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      const key = d.toISOString().split('T')[0];
+      week.push({ date: key, count: heatmapData.heatmap[key] || 0 });
+      if (week.length === 7) {
+        days.push(week);
+        week = [];
+      }
+    }
+    if (week.length > 0) days.push(week);
+    return days;
+  }, [heatmapData.heatmap]);
+
   const [statusMenu, setStatusMenu] = useState<string | null>(null);
 
   const changeStatus = useCallback(async (e: React.MouseEvent, item: MediaItem, newStatus: string) => {
@@ -269,6 +304,52 @@ export default function Dashboard() {
           <div className="text-[11px] text-gray-600 mt-1 font-mono">
             {Object.keys(stats.byCategory).length} categories
           </div>
+        </div>
+      </div>
+
+      {/* Activity Heatmap */}
+      <div className="bg-gray-900/50 border border-gray-800/50 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-medium text-gray-400">Activity</h2>
+          <div className="flex items-center gap-3 text-[11px] font-mono">
+            {heatmapData.currentStreak > 0 && (
+              <span className="text-amber-400">🔥 {heatmapData.currentStreak} day streak</span>
+            )}
+            <span className="text-gray-600">{heatmapData.totalCompleted} completed</span>
+          </div>
+        </div>
+        {/* GitHub-style heatmap grid */}
+        <div className="flex gap-0.5 flex-wrap">
+          {heatmapGrid.map((week, wi) => (
+            <div key={wi} className="flex flex-col gap-0.5">
+              {week.map((day, di) => (
+                <div
+                  key={di}
+                  className={`w-2.5 h-2.5 rounded-[2px] transition-colors ${
+                    day.count === 0
+                      ? 'bg-gray-800/60'
+                      : day.count <= 1
+                      ? 'bg-emerald-900/80'
+                      : day.count <= 3
+                      ? 'bg-emerald-700/80'
+                      : day.count <= 5
+                      ? 'bg-emerald-500/80'
+                      : 'bg-emerald-400'
+                  }`}
+                  title={`${day.date}: ${day.count} activities`}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center justify-end gap-1.5 mt-2 text-[10px] text-gray-600">
+          <span>Less</span>
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-gray-800/60" />
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-emerald-900/80" />
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-emerald-700/80" />
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-emerald-500/80" />
+          <div className="w-2.5 h-2.5 rounded-[2px] bg-emerald-400" />
+          <span>More</span>
         </div>
       </div>
 
