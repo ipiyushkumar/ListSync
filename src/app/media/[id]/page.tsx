@@ -180,7 +180,9 @@ export default function MediaDetailPage() {
     if (!media || incrementing) return;
     setIncrementing(true);
     try {
-      const newEp = media.currentEp + 1;
+      const newEp = media.totalEpisodes
+        ? Math.min(media.currentEp + 1, media.totalEpisodes)
+        : media.currentEp + 1;
       const payload: Record<string, unknown> = { currentEp: newEp };
       // Auto-complete when reaching total episodes (single request)
       if (media.totalEpisodes && newEp >= media.totalEpisodes && media.status !== 'completed') {
@@ -331,7 +333,7 @@ export default function MediaDetailPage() {
                 </div>
                 <button
                   onClick={handleNextEpisode}
-                  disabled={incrementing || media.currentEp >= (media.totalEpisodes || 0)}
+                  disabled={incrementing || (media.totalEpisodes != null && media.totalEpisodes > 0 && media.currentEp >= media.totalEpisodes)}
                   className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-purple-600/20 text-purple-300 rounded-lg hover:bg-purple-600/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {incrementing ? (
