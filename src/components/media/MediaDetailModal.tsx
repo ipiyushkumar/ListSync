@@ -47,6 +47,7 @@ export default function MediaDetailModal({
 }) {
   const [editStatus, setEditStatus] = useState(toUiStatus(media.status));
   const [editEp, setEditEp] = useState(media.currentEp);
+  const [editNotes, setEditNotes] = useState(media.notes || '');
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -54,18 +55,19 @@ export default function MediaDetailModal({
   useEffect(() => {
     setEditStatus(toUiStatus(media.status));
     setEditEp(media.currentEp);
+    setEditNotes(media.notes || '');
     setDeleting(false);
-  }, [media.id, media.status, media.currentEp]);
+  }, [media.id, media.status, media.currentEp, media.notes]);
 
   const genres = parseGenres(media.genres);
   const platforms = parseGenres(media.platforms);
 
-  const hasChanges = editStatus !== toUiStatus(media.status) || editEp !== media.currentEp;
+  const hasChanges = editStatus !== toUiStatus(media.status) || editEp !== media.currentEp || editNotes !== (media.notes || '');
 
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
-      const body: Record<string, unknown> = { status: editStatus, currentEp: editEp };
+      const body: Record<string, unknown> = { status: editStatus, currentEp: editEp, notes: editNotes };
       // Auto-complete when at total episodes
       if (media.totalEpisodes && editEp >= media.totalEpisodes && editStatus !== 'completed') {
         body.status = 'completed';
@@ -326,6 +328,18 @@ export default function MediaDetailModal({
               View on {media.externalSource === 'anilist' ? 'AniList' : media.externalSource === 'tmdb' ? 'TMDB' : 'MAL'}
             </a>
           )}
+        </div>
+
+        {/* Notes */}
+        <div className="px-4 pt-3 pb-1">
+          <label className="block text-xs text-gray-400 mb-1.5">Notes</label>
+          <textarea
+            value={editNotes}
+            onChange={(e) => setEditNotes(e.target.value)}
+            placeholder="Add personal notes about this title..."
+            rows={3}
+            className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-accent/50 resize-none"
+          />
         </div>
 
         {/* Footer */}

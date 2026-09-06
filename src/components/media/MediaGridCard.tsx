@@ -22,6 +22,7 @@ export interface Media {
   externalId?: string;
   externalSource?: string;
   airStatus?: string;
+  notes?: string;
   createdAt?: string;
   updatedAt?: string;
 }
