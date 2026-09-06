@@ -49,10 +49,14 @@ server.tool(
     category: z.enum(['anime', 'manhwa', 'movie', 'tv', 'music']).optional().describe('Filter by category'),
   },
   async ({ query, category }) => {
-    const params = new URLSearchParams({ q: query });
-    if (category) params.set('category', category);
-    const results = await apiCall(`/api/search?${params}`);
-    return { content: [{ type: 'text', text: JSON.stringify(results, null, 2) }] };
+    try {
+      const params = new URLSearchParams({ q: query });
+      if (category) params.set('category', category);
+      const results = await apiCall(`/api/search?${params}`);
+      return { content: [{ type: 'text', text: JSON.stringify(results, null, 2) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Error searching: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
   }
 );
 
@@ -66,12 +70,16 @@ server.tool(
     limit: z.number().optional().describe('Max items to return (default 50)'),
   },
   async ({ category, status, limit }) => {
-    const params = new URLSearchParams();
-    if (category) params.set('category', category);
-    if (status) params.set('status', status);
-    if (limit) params.set('limit', String(limit));
-    const results = await apiCall(`/api/media?${params}`);
-    return { content: [{ type: 'text', text: JSON.stringify(results, null, 2) }] };
+    try {
+      const params = new URLSearchParams();
+      if (category) params.set('category', category);
+      if (status) params.set('status', status);
+      if (limit) params.set('limit', String(limit));
+      const results = await apiCall(`/api/media?${params}`);
+      return { content: [{ type: 'text', text: JSON.stringify(results, null, 2) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Error fetching watchlist: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
   }
 );
 
@@ -83,8 +91,12 @@ server.tool(
     id: z.string().describe('The media item ID'),
   },
   async ({ id }) => {
-    const result = await apiCall(`/api/media/${id}`);
-    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+    try {
+      const result = await apiCall(`/api/media/${id}`);
+      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Error fetching media: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
   }
 );
 
@@ -105,11 +117,15 @@ server.tool(
     externalSource: z.string().optional(),
   },
   async ({ title, category, status, ...rest }) => {
-    const result = await apiCall('/api/media', {
-      method: 'POST',
-      body: JSON.stringify({ title, category, status, ...rest }),
-    });
-    return { content: [{ type: 'text', text: `Added "${title}" to ${category} list. ID: ${result.id}` }] };
+    try {
+      const result = await apiCall('/api/media', {
+        method: 'POST',
+        body: JSON.stringify({ title, category, status, ...rest }),
+      });
+      return { content: [{ type: 'text', text: `Added "${title}" to ${category} list. ID: ${result.id}` }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Error adding "${title}": ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
   }
 );
 
@@ -123,13 +139,17 @@ server.tool(
     status: z.enum(['watching', 'reading', 'listening', 'completed', 'dropped', 'planned', 'on_hold', 'on-hold']).optional(),
   },
   async ({ id, currentEp, status }) => {
-    const body: Record<string, unknown> = { currentEp };
-    if (status) body.status = status;
-    const result = await apiCall(`/api/media/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(body),
-    });
-    return { content: [{ type: 'text', text: `Updated progress to EP ${currentEp}. Status: ${result.status || 'unchanged'}` }] };
+    try {
+      const body: Record<string, unknown> = { currentEp };
+      if (status) body.status = status;
+      const result = await apiCall(`/api/media/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      });
+      return { content: [{ type: 'text', text: `Updated progress to EP ${currentEp}. Status: ${result.status || 'unchanged'}` }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Error updating progress: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
   }
 );
 
@@ -142,11 +162,15 @@ server.tool(
     status: z.enum(['watching', 'reading', 'listening', 'completed', 'dropped', 'planned', 'on_hold', 'on-hold']).describe('New status'),
   },
   async ({ id, status }) => {
-    const result = await apiCall(`/api/media/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ status }),
-    });
-    return { content: [{ type: 'text', text: `Updated "${result.title}" status to ${status}` }] };
+    try {
+      const result = await apiCall(`/api/media/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status }),
+      });
+      return { content: [{ type: 'text', text: `Updated "${result.title}" status to ${status}` }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Error updating status: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
   }
 );
 
@@ -158,8 +182,12 @@ server.tool(
     id: z.string().describe('Media item ID'),
   },
   async ({ id }) => {
-    await apiCall(`/api/media/${id}`, { method: 'DELETE' });
-    return { content: [{ type: 'text', text: `Deleted media item ${id}` }] };
+    try {
+      await apiCall(`/api/media/${id}`, { method: 'DELETE' });
+      return { content: [{ type: 'text', text: `Deleted media item ${id}` }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Error deleting media: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
   }
 );
 
@@ -169,31 +197,7 @@ server.tool(
   'Get watchlist statistics: counts by category and status',
   {},
   async () => {
-    const countsByStatus = (items: { status: string }[]) => {
-      const counts: Record<string, number> = {};
-      for (const item of items) {
-        counts[item.status] = (counts[item.status] || 0) + 1;
-      }
-      return counts;
-    };
-
-    const [anime, manhwa, movie, tv, music] = await Promise.all([
-      apiCall('/api/media?category=anime'),
-      apiCall('/api/media?category=manhwa'),
-      apiCall('/api/media?category=movie'),
-      apiCall('/api/media?category=tv'),
-      apiCall('/api/media?category=music'),
-    ]);
-
-    const stats = {
-      anime: { total: anime.length, byStatus: countsByStatus(anime) },
-      manhwa: { total: manhwa.length, byStatus: countsByStatus(manhwa) },
-      movies: { total: movie.length, byStatus: countsByStatus(movie) },
-      tv: { total: tv.length, byStatus: countsByStatus(tv) },
-      music: { total: music.length, byStatus: countsByStatus(music) },
-      grandTotal: anime.length + manhwa.length + movie.length + tv.length + music.length,
-    };
-
+    const stats = await apiCall('/api/stats');
     return { content: [{ type: 'text', text: JSON.stringify(stats, null, 2) }] };
   }
 );
@@ -209,11 +213,15 @@ server.tool(
     source: z.enum(['manual', 'auto', 'extension']).default('manual'),
   },
   async ({ mediaId, action, episode, source }) => {
-    const result = await apiCall('/api/activity', {
-      method: 'POST',
-      body: JSON.stringify({ mediaId, action, episode, source }),
-    });
-    return { content: [{ type: 'text', text: `Logged activity: ${action} (EP ${episode || '?'}) for media ${mediaId}` }] };
+    try {
+      const result = await apiCall('/api/activity', {
+        method: 'POST',
+        body: JSON.stringify({ mediaId, action, episode, source }),
+      });
+      return { content: [{ type: 'text', text: `Logged activity: ${action} (EP ${episode || '?'}) for media ${mediaId}` }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Error logging activity: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
   }
 );
 
