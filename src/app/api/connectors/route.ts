@@ -7,8 +7,7 @@ const AVAILABLE_CONNECTORS = [
   { name: 'Crunchyroll', type: 'watch', authType: 'oauth', icon: '🟠', category: 'anime' },
   { name: 'Trakt', type: 'watch', authType: 'oauth', icon: '🔴', category: 'tv' },
   { name: 'Letterboxd', type: 'watch', authType: 'api_key', icon: '🟢', category: 'movie' },
-  { name: 'Spotify', type: 'listen', authType: 'oauth', icon: '🟢', category: 'music' },
-  { name: 'Last.fm', type: 'listen', authType: 'api_key', icon: '🔴', category: 'music' },
+  { name: 'YouTube Music', type: 'listen', authType: 'browser', icon: '🔴', category: 'music' },
 ];
 
 // GET /api/connectors — list all available connectors with DB state

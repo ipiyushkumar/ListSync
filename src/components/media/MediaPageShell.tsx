@@ -38,14 +38,14 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'progress', label: 'Progress' },
 ];
 
-const STATUS_META: Record<string, { color: string; bgColor: string }> = {
-  watching: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
-  reading: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
-  listening: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
-  completed: { color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
-  planned: { color: 'text-gray-400', bgColor: 'bg-gray-500/10' },
-  dropped: { color: 'text-red-400', bgColor: 'bg-red-500/10' },
-  'on-hold': { color: 'text-amber-400', bgColor: 'bg-amber-500/10' },
+const STATUS_META: Record<string, { color: string; bgColor: string; dotColor: string }> = {
+  watching: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', dotColor: 'bg-emerald-400' },
+  reading: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', dotColor: 'bg-emerald-400' },
+  listening: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', dotColor: 'bg-emerald-400' },
+  completed: { color: 'text-blue-400', bgColor: 'bg-blue-500/10', dotColor: 'bg-blue-400' },
+  planned: { color: 'text-gray-400', bgColor: 'bg-gray-500/10', dotColor: 'bg-gray-400' },
+  dropped: { color: 'text-red-400', bgColor: 'bg-red-500/10', dotColor: 'bg-red-400' },
+  'on-hold': { color: 'text-amber-400', bgColor: 'bg-amber-500/10', dotColor: 'bg-amber-400' },
 };
 
 /* ─── Main Shell ─────────────────────────────────────────── */
@@ -197,7 +197,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
               key={status}
               label={status.replace('-', ' ')}
               value={stats.counts[status] || 0}
-              icon={<span className={`w-2 h-2 rounded-full inline-block ${meta?.bgColor || ''}`} style={{ backgroundColor: meta?.color ? undefined : undefined }} />}
+              icon={<span className={`w-2 h-2 rounded-full inline-block ${meta?.dotColor || 'bg-gray-400'}`} />}
               active={activeFilter === status}
               onClick={() => setActiveFilter(activeFilter === status ? 'all' : status)}
             />

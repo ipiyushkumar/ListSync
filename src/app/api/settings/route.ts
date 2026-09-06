@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma';
 
 const DEFAULT_SETTINGS: Record<string, string> = {
   'apiKeys.tmdb': '',
-  'apiKeys.lastfm': '',
   'apiKeys.anilist': '',
   'ai.provider': 'openai',
   'ai.apiKey': '',
@@ -32,7 +31,6 @@ function buildResponse(settings: Record<string, string>) {
   return {
     apiKeys: {
       tmdb: maskKey(settings['apiKeys.tmdb']),
-      lastfm: maskKey(settings['apiKeys.lastfm']),
       anilist: maskKey(settings['apiKeys.anilist']),
     },
     ai: {
@@ -71,9 +69,6 @@ export async function POST(request: NextRequest) {
   const isMasked = (v: string) => v === MASK || v.includes('•') || v.includes('\u2022');
   const tmdb = body.apiKeys?.tmdb;
   if (tmdb && !isMasked(tmdb)) updates.push({ key: 'apiKeys.tmdb', value: tmdb });
-
-  const lastfm = body.apiKeys?.lastfm;
-  if (lastfm && !isMasked(lastfm)) updates.push({ key: 'apiKeys.lastfm', value: lastfm });
 
   const anilist = body.apiKeys?.anilist;
   if (anilist && !isMasked(anilist)) updates.push({ key: 'apiKeys.anilist', value: anilist });

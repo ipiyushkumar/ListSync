@@ -140,8 +140,8 @@ export default function SearchPage() {
           currentEp: 0,
           externalId: String(item.id),
           externalSource: item.source || item.category,
-          genres: JSON.stringify(item.genres || []),
-          platforms: '[]',
+          genres: item.genres || [],
+          platforms: [],
           rating: item.rating || item.averageScore || item.score || item.vote_average || 0,
         }),
       });
