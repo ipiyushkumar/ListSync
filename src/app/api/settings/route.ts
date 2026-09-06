@@ -1,81 +1,107 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile, writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { prisma } from '@/lib/prisma';
 
-const SETTINGS_PATH = path.join(process.cwd(), 'data', 'settings.json');
-
-const DEFAULT_SETTINGS = {
-  apiKeys: { tmdb: '', lastfm: '', anilist: '' },
-  ai: { provider: 'openai', apiKey: '', model: 'gpt-4' },
-  autoDetection: { socketPort: 3001, socketEnabled: false },
-  appearance: { theme: 'dark', accentColor: '#a855f7' },
+const DEFAULT_SETTINGS: Record<string, string> = {
+  'apiKeys.tmdb': '',
+  'apiKeys.lastfm': '',
+  'apiKeys.anilist': '',
+  'ai.provider': 'openai',
+  'ai.apiKey': '',
+  'ai.model': 'gpt-4',
+  'autoDetection.socketPort': '3001',
+  'autoDetection.socketEnabled': 'false',
+  'appearance.theme': 'dark',
+  'appearance.accentColor': '#a855f7',
 };
-
-async function ensureDir() {
-  const dir = path.dirname(SETTINGS_PATH);
-  await mkdir(dir, { recursive: true });
-}
-
-async function readSettings() {
-  try {
-    const raw = await readFile(SETTINGS_PATH, 'utf-8');
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
-  } catch {
-    return DEFAULT_SETTINGS;
-  }
-}
 
 function maskKey(key: string): string {
   if (!key || key.length < 8) return key ? '••••••••' : '';
   return key.slice(0, 4) + '••••' + key.slice(-4);
 }
 
-// GET /api/settings — returns settings with keys masked
-export async function GET() {
-  const settings = await readSettings();
-  const safe = {
-    ...settings,
+async function getAllSettings(): Promise<Record<string, string>> {
+  const rows = await prisma.setting.findMany();
+  const map: Record<string, string> = { ...DEFAULT_SETTINGS };
+  for (const row of rows) {
+    map[row.key] = row.value;
+  }
+  return map;
+}
+
+function buildResponse(settings: Record<string, string>) {
+  return {
     apiKeys: {
-      tmdb: maskKey(settings.apiKeys.tmdb),
-      lastfm: maskKey(settings.apiKeys.lastfm),
-      anilist: maskKey(settings.apiKeys.anilist),
+      tmdb: maskKey(settings['apiKeys.tmdb']),
+      lastfm: maskKey(settings['apiKeys.lastfm']),
+      anilist: maskKey(settings['apiKeys.anilist']),
     },
     ai: {
-      ...settings.ai,
-      apiKey: maskKey(settings.ai.apiKey),
+      provider: settings['ai.provider'],
+      apiKey: maskKey(settings['ai.apiKey']),
+      model: settings['ai.model'],
+    },
+    autoDetection: {
+      socketPort: parseInt(settings['autoDetection.socketPort'] || '3001', 10),
+      socketEnabled: settings['autoDetection.socketEnabled'] === 'true',
+    },
+    appearance: {
+      theme: settings['appearance.theme'],
+      accentColor: settings['appearance.accentColor'],
     },
   };
-  return NextResponse.json(safe);
+}
+
+// GET /api/settings — returns settings with keys masked
+export async function GET() {
+  const settings = await getAllSettings();
+  return NextResponse.json(buildResponse(settings));
 }
 
 // POST /api/settings — merges partial update, only overwrites keys if non-empty
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const current = await readSettings();
+  const current = await getAllSettings();
 
-  const updated = {
-    apiKeys: {
-      tmdb: body.apiKeys?.tmdb && body.apiKeys.tmdb !== '••••••••' ? body.apiKeys.tmdb : current.apiKeys.tmdb,
-      lastfm: body.apiKeys?.lastfm && body.apiKeys.lastfm !== '••••••••' ? body.apiKeys.lastfm : current.apiKeys.lastfm,
-      anilist: body.apiKeys?.anilist && body.apiKeys.anilist !== '••••••••' ? body.apiKeys.anilist : current.apiKeys.anilist,
-    },
-    ai: {
-      provider: body.ai?.provider || current.ai.provider,
-      apiKey: body.ai?.apiKey && body.ai.apiKey !== '••••••••' ? body.ai.apiKey : current.ai.apiKey,
-      model: body.ai?.model || current.ai.model,
-    },
-    autoDetection: {
-      socketPort: body.autoDetection?.socketPort ?? current.autoDetection.socketPort,
-      socketEnabled: body.autoDetection?.socketEnabled ?? current.autoDetection.socketEnabled,
-    },
-    appearance: {
-      theme: body.appearance?.theme || current.appearance.theme,
-      accentColor: body.appearance?.accentColor || current.appearance.accentColor,
-    },
-  };
+  const MASK = '••••••••';
 
-  await ensureDir();
-  await writeFile(SETTINGS_PATH, JSON.stringify(updated, null, 2), 'utf-8');
+  const updates: Array<{ key: string; value: string }> = [];
+
+  // API keys — only update if non-empty and not masked
+  const tmdb = body.apiKeys?.tmdb;
+  if (tmdb && tmdb !== MASK) updates.push({ key: 'apiKeys.tmdb', value: tmdb });
+
+  const lastfm = body.apiKeys?.lastfm;
+  if (lastfm && lastfm !== MASK) updates.push({ key: 'apiKeys.lastfm', value: lastfm });
+
+  const anilist = body.apiKeys?.anilist;
+  if (anilist && anilist !== MASK) updates.push({ key: 'apiKeys.anilist', value: anilist });
+
+  // AI settings
+  if (body.ai?.provider) updates.push({ key: 'ai.provider', value: body.ai.provider });
+  const aiKey = body.ai?.apiKey;
+  if (aiKey && aiKey !== MASK) updates.push({ key: 'ai.apiKey', value: aiKey });
+  if (body.ai?.model) updates.push({ key: 'ai.model', value: body.ai.model });
+
+  // Auto-detection
+  if (body.autoDetection?.socketPort != null) {
+    updates.push({ key: 'autoDetection.socketPort', value: String(body.autoDetection.socketPort) });
+  }
+  if (body.autoDetection?.socketEnabled != null) {
+    updates.push({ key: 'autoDetection.socketEnabled', value: String(body.autoDetection.socketEnabled) });
+  }
+
+  // Appearance
+  if (body.appearance?.theme) updates.push({ key: 'appearance.theme', value: body.appearance.theme });
+  if (body.appearance?.accentColor) updates.push({ key: 'appearance.accentColor', value: body.appearance.accentColor });
+
+  // Upsert each setting
+  for (const u of updates) {
+    await prisma.setting.upsert({
+      where: { key: u.key },
+      update: { value: u.value },
+      create: { key: u.key, value: u.value, category: u.key.split('.')[0] },
+    });
+  }
 
   return NextResponse.json({ success: true });
 }

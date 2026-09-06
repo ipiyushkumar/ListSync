@@ -145,13 +145,13 @@ export default function SettingsPage() {
   const [testing, setTesting] = useState(false);
   const [toast, setToast] = useState<{ kind: ToastKind; message: string } | null>(null);
 
+  const showToast = useCallback((kind: ToastKind, message: string) => setToast({ kind, message }), []);
+
   /* ── Load data ────────────────────────────────────────────── */
   useEffect(() => {
     fetch('/api/settings').then((r) => r.json()).then(setSettings).catch(() => showToast('error', 'Failed to load settings'));
     fetch('/api/connectors').then((r) => r.json()).then(setConnectors).catch(() => showToast('error', 'Failed to load connectors'));
-  }, []);
-
-  const showToast = useCallback((kind: ToastKind, message: string) => setToast({ kind, message }), []);
+  }, [showToast]);
 
   /* ── Derived helpers ──────────────────────────────────────── */
   const currentProvider = AI_PROVIDERS.find((p) => p.value === settings?.ai.provider) || AI_PROVIDERS[0];

@@ -66,3 +66,15 @@ model AiKey {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  category  String   @default("general") // api_keys, appearance, connectors, general
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@index([category])
+}
