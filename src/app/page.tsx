@@ -24,14 +24,6 @@ interface MediaItem {
   updatedAt: string;
 }
 
-const CATEGORY_LINK: Record<string, string> = {
-  anime: '/anime',
-  manhwa: '/manhwa',
-  movie: '/movies',
-  tv: '/tv',
-  music: '/music',
-};
-
 const CATEGORY_META: Record<string, { icon: LucideIcon; label: string }> = {
   anime: { icon: Film, label: 'Anime' },
   manhwa: { icon: BookOpen, label: 'Manhwa' },
@@ -302,7 +294,7 @@ export default function Dashboard() {
                   return (
                     <tr
                       key={item.id}
-                      onClick={() => router.push(CATEGORY_LINK[item.category] || '/')}
+                      onClick={() => router.push(`/media/${item.id}`)}
                       className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors duration-200 cursor-pointer"
                     >
                       <td className="px-4 py-2.5">
@@ -326,7 +318,7 @@ export default function Dashboard() {
                               </div>
                             )}
                           </div>
-                          <span className="text-xs text-white font-medium truncate max-w-[200px]">{item.title}</span>
+                          <span className="text-xs text-white font-medium leading-snug">{item.title}</span>
                         </div>
                       </td>
                       <td className="px-4 py-2.5">
