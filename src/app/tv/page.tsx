@@ -126,18 +126,22 @@ function MediaCard({
         </div>
 
         {/* Genres */}
-        {item.genres && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {JSON.parse(item.genres).slice(0, 3).map((genre: string) => (
-              <span
-                key={genre}
-                className="px-2 py-0.5 bg-gray-800 text-gray-300 rounded text-xs"
-              >
-                {genre}
-              </span>
-            ))}
-          </div>
-        )}
+        {item.genres && (() => {
+          try {
+            const parsed = JSON.parse(item.genres);
+            const arr = Array.isArray(parsed) ? parsed : [];
+            if (arr.length === 0) return null;
+            return (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {arr.slice(0, 3).map((genre: string) => (
+                  <span key={genre} className="px-2 py-0.5 bg-gray-800 text-gray-300 rounded text-xs">
+                    {genre}
+                  </span>
+                ))}
+              </div>
+            );
+          } catch { return null; }
+        })()}
 
         {/* Actions */}
         <div className="flex gap-2 mt-4">
