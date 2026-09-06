@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const mediaUrl = $('#media-url');
   const mediaPlatformBadge = $('#media-platform-badge');
   const btnAdd = $('#btn-add');
-  const btnDashboard = $('#btn-dashboard');
   const statDetected = $('#stat-detected');
   const statSent = $('#stat-sent');
 
@@ -105,14 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 2000);
     });
   });
-
-  // ── Open dashboard ──────────────────────────────────────────────────────
-
-  if (btnDashboard) {
-    btnDashboard.addEventListener('click', () => {
-      chrome.tabs.create({ url: 'http://localhost:3085' });
-    });
-  }
 
   // ── Init ──────────────────────────────────────────────────────────────────
 
