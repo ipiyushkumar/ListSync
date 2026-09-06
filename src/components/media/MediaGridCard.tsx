@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Star, ChevronDown, Check } from 'lucide-react';
+import { Star, ChevronDown, Check, Heart } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
 import { parseGenres } from '@/lib/utils';
@@ -24,6 +24,7 @@ export interface Media {
   externalSource?: string;
   airStatus?: string;
   notes?: string;
+  favorite?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -49,6 +50,7 @@ export default function MediaGridCard({
   onClick: () => void;
   onIncrement: () => void;
   onStatusChange?: (newStatus: string) => void;
+  onFavoriteToggle?: () => void;
   incrementLabel?: string;
   incrementDisabled?: boolean;
   aspectRatio?: string;
@@ -86,6 +88,19 @@ export default function MediaGridCard({
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         )}
+
+        {/* Favorite heart button — always visible */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onFavoriteToggle?.();
+          }}
+          className="absolute top-2 right-2 z-20 p-1.5 rounded-full bg-black/50 backdrop-blur-sm transition-colors"
+        >
+          <Heart
+            className={`w-4 h-4 transition-colors ${item.favorite ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-400'}`}
+          />
+        </button>
 
         {/* Gradient overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />

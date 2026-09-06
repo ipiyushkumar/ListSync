@@ -6,6 +6,7 @@ import {
   ArrowUpDown, ChevronDown, X, CheckSquare, Trash2,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import StatCard from './StatCard';
 import MediaGridCard from './MediaGridCard';
 import MediaListRow from './MediaListRow';
@@ -101,7 +102,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
       const filterKey = statusFilters.find((f) => normalizeStatus(f as string) === normalized);
       if (filterKey && counts[filterKey] !== undefined) counts[filterKey]++;
     });
-    return { counts, total: media.length };
+    return { counts, total: media.length, favorites: media.filter((m) => (m as any).favorite).length };
   }, [media, statusFilters]);
 
   /* ── Genres ──────────────────────────────────────────── */
@@ -117,8 +118,11 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   const displayed = useMemo(() => {
     let items = [...media];
 
-    // Status filter (client-side) — normalize both sides to on_hold for DB match
-    if (activeFilter !== 'all') {
+    // Favorites filter
+    if (activeFilter === 'favorites') {
+      items = items.filter((m) => (m as any).favorite);
+    } else if (activeFilter !== 'all') {
+      // Status filter (client-side) — normalize both sides to on_hold for DB match
       const filterStatus = normalizeStatus(activeFilter);
       items = items.filter((m) => normalizeStatus(m.status) === filterStatus);
     }
@@ -294,6 +298,13 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
             />
           );
         })}
+        <StatCard
+          label="Favorites"
+          value={stats.favorites}
+          icon={<Heart className="w-4 h-4 text-red-400" />}
+          active={activeFilter === 'favorites'}
+          onClick={() => setActiveFilter(activeFilter === 'favorites' ? 'all' : 'favorites')}
+        />
       </div>
 
       {/* Toolbar */}
@@ -497,6 +508,20 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
                         const updated = await res.json();
                         handleUpdate(updated);
                         setToast({ message: `"${item.title}" → ${newStatus}`, type: 'success' });
+                      }
+                    } catch { /* silent */ }
+                  }}
+                  onFavoriteToggle={async () => {
+                    try {
+                      const res = await fetch(`/api/media/${item.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ favorite: !(item as any).favorite }),
+                      });
+                      if (res.ok) {
+                        const updated = await res.json();
+                        handleUpdate(updated);
+                        setToast({ message: (item as any).favorite ? `Removed "${item.title}" from favorites` : `Added "${item.title}" to favorites`, type: 'success' });
                       }
                     } catch { /* silent */ }
                   }}

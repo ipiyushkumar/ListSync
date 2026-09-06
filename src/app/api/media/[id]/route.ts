@@ -24,7 +24,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       'title', 'originalTitle', 'description', 'category',
       'posterUrl', 'releaseDate', 'totalEpisodes', 'currentEp',
       'rating', 'status', 'genres', 'platforms',
-      'externalId', 'externalSource', 'airStatus', 'notes',
+      'externalId', 'externalSource', 'airStatus', 'notes', 'favorite',
     ];
 
     const data: Record<string, unknown> = {};
