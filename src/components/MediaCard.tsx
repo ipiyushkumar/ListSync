@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Star, Trash2 } from 'lucide-react';
 import StatusBadge from './StatusBadge';
 import ProgressBar from './ProgressBar';
 import Toast from './Toast';
@@ -92,7 +93,7 @@ export default function MediaCard({ media, onUpdate, onDelete }: MediaCardProps)
                 onClick={handleDelete}
                 className="bg-red-600/80 hover:bg-red-600 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors"
               >
-                🗑
+                <Trash2 size={12} />
               </button>
             </div>
           </div>
@@ -112,16 +113,15 @@ export default function MediaCard({ media, onUpdate, onDelete }: MediaCardProps)
           {media.rating != null && (
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
-                <span
+                <Star
                   key={star}
-                  className={`text-sm ${
+                  size={12}
+                  className={
                     star <= Math.round(media.rating! / 2)
-                      ? 'text-yellow-400'
+                      ? 'fill-yellow-400 text-yellow-400'
                       : 'text-gray-700'
-                  }`}
-                >
-                  ★
-                </span>
+                  }
+                />
               ))}
               <span className="text-xs text-gray-500 ml-1">
                 {(media.rating / 2).toFixed(1)}

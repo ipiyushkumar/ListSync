@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { parseGenres } from '@/lib/utils';
 import MediaModal from '@/components/MediaModal';
 import {
   ArrowLeft,
@@ -59,16 +60,6 @@ const CATEGORY_ICONS: Record<string, typeof Film> = {
   tv: Tv,
   music: Music,
 };
-
-function parseJsonArray(raw?: string): string[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
 
 function RatingStars({ rating }: { rating?: number }) {
   if (!rating) return null;
@@ -245,8 +236,8 @@ export default function MediaDetailPage() {
     );
   }
 
-  const genres = parseJsonArray(media.genres);
-  const platforms = parseJsonArray(media.platforms);
+  const genres = parseGenres(media.genres);
+  const platforms = parseGenres(media.platforms);
   const progressPercent =
     media.totalEpisodes && media.totalEpisodes > 0
       ? Math.min((media.currentEp / media.totalEpisodes) * 100, 100)
