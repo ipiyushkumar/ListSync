@@ -12,6 +12,7 @@ import MediaListRow from './MediaListRow';
 import MediaDetailModal from './MediaDetailModal';
 import { parseGenres } from '@/lib/utils';
 import type { Media } from './MediaGridCard';
+import Toast from '../Toast';
 
 /* ─── Types ──────────────────────────────────────────────── */
 
@@ -74,6 +75,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkActionMenu, setBulkActionMenu] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   /* ── Data fetch ──────────────────────────────────────── */
   const fetchMedia = useCallback(async () => {
@@ -240,9 +242,15 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
     }
     setSelectedIds(new Set());
     setBulkActionMenu(false);
+    const count = [...selectedIds].filter(id => {
+      const item = media.find(m => m.id === id);
+      return item && item.status !== newStatus;
+    }).length;
+    setToast({ message: `Updated ${count} item${count !== 1 ? 's' : ''} to "${newStatus}"`, type: 'success' });
   };
 
   const handleBulkDelete = async () => {
+    const count = selectedIds.size;
     for (const id of selectedIds) {
       try {
         await fetch(`/api/media/${id}`, { method: 'DELETE' });
@@ -251,6 +259,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
     }
     setSelectedIds(new Set());
     setBulkActionMenu(false);
+    setToast({ message: `Deleted ${count} item${count !== 1 ? 's' : ''}`, type: 'success' });
   };
 
   /* ── Render ──────────────────────────────────────────── */
@@ -550,6 +559,15 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
 
       {/* Close sort menu on outside click */}
       {showSortMenu && <div className="fixed inset-0 z-20" onClick={() => setShowSortMenu(false)} />}
+
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
