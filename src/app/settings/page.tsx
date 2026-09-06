@@ -19,6 +19,19 @@ type ToastKind = 'success' | 'error' | 'info';
 
 const ACCENT_COLORS = ['#a855f7', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
+function applyAccent(hex: string) {
+  try {
+    document.documentElement.style.setProperty('--accent', hex);
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    document.documentElement.style.setProperty('--accent-hover', `rgb(${Math.max(0, r - 20)},${Math.max(0, g - 20)},${Math.max(0, b - 20)})`);
+    document.documentElement.style.setProperty('--accent-light', `rgba(${r},${g},${b},0.1)`);
+    document.documentElement.style.setProperty('--accent-border', `rgba(${r},${g},${b},0.2)`);
+    localStorage.setItem('listsync-accent', hex);
+  } catch { /* no-op */ }
+}
+
 const AI_PROVIDERS = [
   { value: 'openai', label: 'OpenAI', models: ['gpt-4', 'gpt-4o', 'gpt-4o-mini'] },
   { value: 'anthropic', label: 'Anthropic', models: ['claude-sonnet-4-20250514', 'claude-3-haiku-20240307'] },
@@ -389,7 +402,7 @@ export default function SettingsPage() {
             {ACCENT_COLORS.map((color) => (
               <button
                 key={color}
-                onClick={() => updateSettings({ appearance: { ...settings.appearance, accentColor: color } })}
+                onClick={() => { applyAccent(color); updateSettings({ appearance: { ...settings.appearance, accentColor: color } }); }}
                 className={`w-9 h-9 rounded-full transition-all ${
                   settings.appearance.accentColor === color
                     ? 'scale-110 ring-2 ring-offset-2 ring-offset-gray-900'
@@ -402,7 +415,7 @@ export default function SettingsPage() {
               <input
                 type="color"
                 value={settings.appearance.accentColor}
-                onChange={(e) => updateSettings({ appearance: { ...settings.appearance, accentColor: e.target.value } })}
+                onChange={(e) => { applyAccent(e.target.value); updateSettings({ appearance: { ...settings.appearance, accentColor: e.target.value } }); }}
                 className="w-9 h-9 rounded-lg cursor-pointer bg-transparent border-0"
               />
               <span className="text-xs text-gray-500 font-mono">{settings.appearance.accentColor}</span>
