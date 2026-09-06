@@ -132,6 +132,13 @@ export default function Dashboard() {
       .slice(0, 8);
   }, [media]);
 
+  const recentlyCompleted = useMemo(() => {
+    return [...media]
+      .filter(m => m.status === 'completed')
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .slice(0, 5);
+  }, [media]);
+
   const watchingItems = useMemo(() => {
     return media.filter(m => m.status === 'watching' || m.status === 'reading' || m.status === 'listening');
   }, [media]);
@@ -300,6 +307,43 @@ export default function Dashboard() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Recently Completed */}
+      {recentlyCompleted.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xs font-medium text-gray-400">Recently Completed</h2>
+            <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {recentlyCompleted.map(item => (
+              <button
+                key={item.id}
+                onClick={() => router.push(`/media/${item.id}`)}
+                className="flex items-center gap-2 bg-gray-900/50 border border-gray-800/50 rounded-lg p-2.5 hover:border-blue-400/30 transition-colors shrink-0 min-w-0 w-56"
+              >
+                {item.posterUrl ? (
+                  <img src={item.posterUrl} alt="" className="w-8 h-11 rounded object-cover shrink-0" />
+                ) : (
+                  <div className="w-8 h-11 rounded bg-gray-800 shrink-0" />
+                )}
+                <div className="min-w-0 text-left">
+                  <p className="text-xs font-medium text-white truncate">{item.title}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <CheckCircle2 className="w-2.5 h-2.5 text-blue-400 shrink-0" />
+                    <span className="text-[10px] text-blue-400">Completed</span>
+                    {item.rating && (
+                      <span className="text-[10px] text-gray-500 ml-auto flex items-center gap-0.5">
+                        <Star className="w-2.5 h-2.5" />{item.rating}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       )}
