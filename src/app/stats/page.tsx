@@ -135,9 +135,30 @@ export default function StatsPage() {
       categoryProgress[item.category].total += item.totalEpisodes;
     }
 
+    // Time by category breakdown
+    const avgDuration: Record<string, number> = { anime: 24, manhwa: 15, movie: 120, tv: 45, music: 4 };
+    const timeByCategory: Record<string, number> = {};
+    let totalTimeMinutes = 0;
+    for (const item of items) {
+      const dur = avgDuration[item.category] || 24;
+      const mins = (item.currentEp || 0) * dur;
+      totalTimeMinutes += mins;
+      timeByCategory[item.category] = (timeByCategory[item.category] || 0) + mins;
+    }
+    const timeBreakdown = Object.entries(timeByCategory)
+      .map(([category, minutes]) => ({
+        category,
+        minutes,
+        hours: Math.round(minutes / 60 * 10) / 10,
+      }))
+      .sort((a, b) => b.minutes - a.minutes);
+    const totalTimeHours = Math.round(totalTimeMinutes / 60);
+    const totalDays = Math.floor(totalTimeHours / 24);
+
     return {
       total, byCategory, byStatus, totalEpisodesWatched, estimatedHours,
       completionRate, avgRating, ratingBuckets, topRated, recentAdded, categoryProgress,
+      timeBreakdown, totalTimeHours, totalDays,
     };
   }, [items]);
 
@@ -164,7 +185,7 @@ export default function StatsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard label="Total Items" value={String(stats.total)} icon={<BarChart3 className="w-5 h-5 text-accent" />} />
         <MetricCard label="Episodes Watched" value={String(stats.totalEpisodesWatched)} icon={<Eye className="w-5 h-5 text-emerald-400" />} />
-        <MetricCard label="Est. Watch Time" value={`${stats.estimatedHours}h`} icon={<Clock className="w-5 h-5 text-amber-400" />} />
+        <MetricCard label="Time Invested" value={`${stats.totalTimeHours}h`} icon={<Clock className="w-5 h-5 text-amber-400" />} sub={stats.totalDays > 0 ? `${stats.totalDays} day${stats.totalDays > 1 ? 's' : ''} equivalent` : undefined} />
         <MetricCard label="Avg Rating" value={stats.avgRating} icon={<Star className="w-5 h-5 text-yellow-400" />} sub={`${items.filter((i) => i.rating && i.rating > 0).length} rated`} />
       </div>
 
@@ -276,6 +297,35 @@ export default function StatsPage() {
                 );
               })}
           </div>
+        </div>
+      )}
+
+      {/* ── Time by Category ── */}
+      {stats.timeBreakdown.length > 0 && (
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Time by Category</h2>
+          <div className="space-y-3">
+            {stats.timeBreakdown.map(({ category, hours }) => {
+              const meta = CATEGORY_META[category] || { icon: BarChart3, label: category, color: '#a855f7' };
+              const Icon = meta.icon;
+              const pct = stats.totalTimeHours > 0 ? (hours / stats.totalTimeHours) * 100 : 0;
+              return (
+                <div key={category}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="flex items-center gap-2 text-gray-300">
+                      <Icon className="w-4 h-4" style={{ color: meta.color }} />
+                      {meta.label}
+                    </span>
+                    <span className="text-gray-500">{hours}h ({Math.round(pct)}%)</span>
+                  </div>
+                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: meta.color }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-gray-600 mt-4">Based on avg: anime 24m, manhwa 15m, movies 2h, TV 45m, music 4m</p>
         </div>
       )}
 

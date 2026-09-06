@@ -99,6 +99,32 @@ export async function GET() {
       currentStreak = 0;
     }
 
+    // Time spent calculation (episodes × avg duration per category in minutes)
+    const avgDurationByCategory: Record<string, number> = {
+      anime: 24,    // ~24 min per episode
+      manhwa: 15,   // ~15 min reading per chapter
+      movie: 120,   // ~2 hours per movie
+      tv: 45,       // ~45 min per episode
+      music: 4,     // ~4 min per song
+    };
+
+    const allMedia = await prisma.media.findMany({
+      select: { category: true, currentEp: true },
+    });
+
+    let totalMinutes = 0;
+    const minutesByCategory: Record<string, number> = {};
+    allMedia.forEach((m) => {
+      const duration = avgDurationByCategory[m.category] || 24;
+      const mins = (m.currentEp || 0) * duration;
+      totalMinutes += mins;
+      minutesByCategory[m.category] = (minutesByCategory[m.category] || 0) + mins;
+    });
+
+    const totalHours = Math.floor(totalMinutes / 60);
+    const remainingMinutes = totalMinutes % 60;
+    const totalDays = Math.floor(totalHours / 24);
+
     return NextResponse.json({
       total,
       byCategory: byCategory.map((c) => ({
@@ -119,6 +145,17 @@ export async function GET() {
       totalCompleted,
       currentStreak,
       longestStreak,
+      timeSpent: {
+        totalMinutes,
+        totalHours,
+        remainingMinutes,
+        totalDays,
+        byCategory: Object.entries(minutesByCategory).map(([category, minutes]) => ({
+          category,
+          minutes,
+          hours: Math.round(minutes / 60 * 10) / 10,
+        })),
+      },
     });
   } catch {
     return NextResponse.json(
