@@ -152,6 +152,7 @@ export default function SettingsPage() {
   const [toast, setToast] = useState<{ kind: ToastKind; message: string } | null>(null);
 
   const showToast = useCallback((kind: ToastKind, message: string) => setToast({ kind, message }), []);
+  const dismissToast = useCallback(() => setToast(null), []);
 
   /* ── Load data ────────────────────────────────────────────── */
   useEffect(() => {
@@ -239,7 +240,7 @@ export default function SettingsPage() {
   /* ══════════════════════ RENDER ═════════════════════════════ */
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
-      {toast && <SettingsToast kind={toast.kind} message={toast.message} onClose={() => setToast(null)} />}
+      {toast && <SettingsToast kind={toast.kind} message={toast.message} onClose={dismissToast} />}
 
       {/* Header */}
       <div className="flex items-end justify-between">

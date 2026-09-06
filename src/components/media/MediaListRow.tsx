@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus } from 'lucide-react';
+import { Plus, Star } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
 import { parseGenres } from '@/lib/utils';
@@ -57,7 +57,7 @@ export default function MediaListRow({
       {/* Rating */}
       {item.rating != null && (
         <div className="flex items-center gap-1 shrink-0">
-          <span className="text-yellow-400 text-xs">★</span>
+          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
           <span className="text-sm font-medium text-gray-300 tabular-nums">{item.rating.toFixed(1)}</span>
         </div>
       )}
