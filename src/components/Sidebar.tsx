@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Search, Film, BookOpen, Clapperboard, Tv, Music, Activity, Settings, Download, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Search, Film, BookOpen, Clapperboard, Tv, Music, Activity, Settings, Download, BarChart3, CalendarDays } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 const navItems: { label: string; href: string; icon: LucideIcon }[] = [
@@ -14,6 +14,7 @@ const navItems: { label: string; href: string; icon: LucideIcon }[] = [
   { label: 'TV Shows', href: '/tv', icon: Tv },
   { label: 'Music', href: '/music', icon: Music },
   { label: 'Activity', href: '/activity', icon: Activity },
+  { label: 'Calendar', href: '/calendar', icon: CalendarDays },
   { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Export', href: '/export', icon: Download },
   { label: 'Stats', href: '/stats', icon: BarChart3 },
