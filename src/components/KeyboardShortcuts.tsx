@@ -5,8 +5,11 @@ import { X, Keyboard } from 'lucide-react';
 
 const SHORTCUTS = [
   { keys: ['?'], description: 'Show keyboard shortcuts' },
-  { keys: ['/', 'Ctrl', 'K'], description: 'Focus search / Command palette' },
+  { keys: ['Ctrl', 'K'], description: 'Command palette' },
   { keys: ['Esc'], description: 'Close modal / Clear search' },
+  { keys: ['/'], description: 'Focus search bar' },
+  { keys: ['Enter'], description: 'Search / Add to library' },
+  { keys: ['Arrow Up', 'Arrow Down'], description: 'Navigate search results' },
 ];
 
 function Kbd({ children }: { children: React.ReactNode }) {
