@@ -197,8 +197,12 @@ server.tool(
   'Get watchlist statistics: counts by category and status',
   {},
   async () => {
-    const stats = await apiCall('/api/stats');
-    return { content: [{ type: 'text', text: JSON.stringify(stats, null, 2) }] };
+    try {
+      const stats = await apiCall('/api/stats');
+      return { content: [{ type: 'text', text: JSON.stringify(stats, null, 2) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `Error fetching stats: ${err instanceof Error ? err.message : String(err)}` }], isError: true };
+    }
   }
 );
 

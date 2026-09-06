@@ -99,6 +99,43 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Auto-create previous season entries as "completed"
+    if (body.seasonDetails && body.currentSeason && body.currentSeason > 1) {
+      const prevSeasons = body.seasonDetails.filter(
+        (s: { seasonNumber: number }) => s.seasonNumber < body.currentSeason
+      );
+      for (const season of prevSeasons) {
+        // Skip if this season's externalId already exists in DB
+        const seasonExternalId = season.anilistId
+          ? String(season.anilistId)
+          : body.externalId;
+        if (seasonExternalId) {
+          const exists = await prisma.media.findFirst({
+            where: { externalId: String(seasonExternalId), externalSource: body.externalSource },
+          });
+          if (exists) continue;
+        }
+        await prisma.media.create({
+          data: {
+            title: season.name || `${body.title} - Season ${season.seasonNumber}`,
+            description: body.description,
+            category: body.category,
+            status: 'completed',
+            rating: body.rating,
+            posterUrl: body.posterUrl || body.coverImage,
+            totalEpisodes: season.episodeCount || 0,
+            currentEp: season.episodeCount || 0,
+            externalId: seasonExternalId ? String(seasonExternalId) : null,
+            externalSource: body.externalSource || null,
+            genres: body.genres ? JSON.stringify(body.genres) : null,
+            releaseDate: body.releaseDate,
+            platforms: body.platforms ? JSON.stringify(body.platforms) : null,
+            airStatus: 'Ended',
+          },
+        });
+      }
+    }
+
     return NextResponse.json(media, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Database error' }, { status: 500 });

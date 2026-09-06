@@ -100,7 +100,7 @@ function StatusBadge({ status }: { status: string }) {
   const { bg, text } = config[status] || config.planned;
   return (
     <span className={`px-3 py-1 rounded-full text-xs font-medium ${bg} ${text}`}>
-      {status.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+      {status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
     </span>
   );
 }

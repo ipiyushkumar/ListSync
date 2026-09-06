@@ -14,6 +14,13 @@ interface Platform {
   link: string;
 }
 
+interface SeasonDetail {
+  seasonNumber: number;
+  episodeCount: number;
+  name: string;
+  anilistId?: number;
+}
+
 interface SearchResult {
   id: string | number;
   title?: string;
@@ -29,6 +36,7 @@ interface SearchResult {
   score?: number;
   vote_average?: number;
   totalEpisodes?: number;
+  totalSeasons?: number;
   episodes?: number;
   number_of_episodes?: number;
   releaseDate?: string;
@@ -36,6 +44,7 @@ interface SearchResult {
   source?: string;
   airStatus?: string;
   platforms?: Platform[];
+  seasonDetails?: SeasonDetail[];
 }
 
 interface LibraryEntry {
@@ -108,6 +117,7 @@ export default function SearchPage() {
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [library, setLibrary] = useState<LibraryEntry[]>([]);
   const [searched, setSearched] = useState(false);
+  const [selectedSeasons, setSelectedSeasons] = useState<Record<string, number>>({});
   const inputRef = useRef<HTMLInputElement>(null);
 
   // ESC key to clear search input and results
@@ -184,6 +194,9 @@ export default function SearchPage() {
 
   const addToLibrary = async (item: SearchResult) => {
     const title = item.title || item.name || 'Unknown';
+    const itemKey = `${item.id}-${item.category}`;
+    const currentSeason = selectedSeasons[itemKey] || 1;
+    const totalSeasons = item.totalSeasons || (item.seasonDetails ? item.seasonDetails.length : 0);
     try {
       const res = await fetch('/api/media', {
         method: 'POST',
@@ -202,6 +215,7 @@ export default function SearchPage() {
           platforms: (item.platforms || []).map((p: Platform) => p.name),
           airStatus: item.airStatus || null,
           rating: item.rating || item.averageScore || item.score || item.vote_average || 0,
+          ...(totalSeasons > 1 && currentSeason > 1 ? { seasonDetails: item.seasonDetails, currentSeason } : {}),
         }),
       });
       if (res.ok) {
@@ -210,8 +224,11 @@ export default function SearchPage() {
           externalId: String(item.id), externalSource: item.source || '',
         };
         setLibrary(prev => [...prev, newEntry]);
-        setAddedIds(prev => new Set(prev).add(`${item.id}-${item.category}`));
-        setToast({ message: `Added "${title}" to library`, type: 'success' });
+        setAddedIds(prev => new Set(prev).add(itemKey));
+        const seasonMsg = totalSeasons > 1 && currentSeason > 1
+          ? ` (Season ${currentSeason} + ${currentSeason - 1} previous seasons as completed)`
+          : '';
+        setToast({ message: `Added "${title}" to library${seasonMsg}`, type: 'success' });
       } else {
         const errText = await res.text().catch(() => `HTTP ${res.status}`);
         setToast({ message: `Failed to add: ${errText}`, type: 'error' });
@@ -431,6 +448,28 @@ export default function SearchPage() {
                 {/* Info */}
                 <div className="p-3">
                   <h3 className="text-sm font-medium text-white leading-snug">{title}</h3>
+                  {/* Season picker for multi-season shows */}
+                  {item.totalSeasons && item.totalSeasons > 1 && (
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <Tv className="w-2.5 h-2.5 text-gray-500" />
+                      <select
+                        value={selectedSeasons[`${item.id}-${item.category}`] || item.totalSeasons}
+                        onChange={(e) => setSelectedSeasons(prev => ({
+                          ...prev,
+                          [`${item.id}-${item.category}`]: parseInt(e.target.value),
+                        }))}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-[10px] text-gray-300 cursor-pointer focus:outline-none focus:border-gray-500"
+                      >
+                        {Array.from({ length: item.totalSeasons }, (_, i) => i + 1).map(s => (
+                          <option key={s} value={s}>Season {s}</option>
+                        ))}
+                      </select>
+                      <span className="text-[10px] text-gray-600">
+                        {selectedSeasons[`${item.id}-${item.category}`] || item.totalSeasons} of {item.totalSeasons}
+                      </span>
+                    </div>
+                  )}
                   {item.airStatus && (() => {
                     const colors = getAirStatusColor(item.airStatus);
                     return colors ? (

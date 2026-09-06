@@ -16,11 +16,13 @@ interface SearchResult {
   coverImage?: string;
   rating?: number;
   totalEpisodes?: number;
+  totalSeasons?: number;
   genres?: string[];
   releaseDate?: string;
   source: string;
   airStatus?: string;
   platforms?: Platform[];
+  seasonDetails?: { seasonNumber: number; episodeCount: number; name: string }[];
 }
 
 // Strip HTML tags from text (AniList returns <br><br> in descriptions)
@@ -65,9 +67,21 @@ async function enrichTMDBTV(results: SearchResult[], key: string): Promise<Searc
       ]);
 
       let airStatus: string | undefined;
+      let totalSeasons: number | undefined;
+      let seasonDetails: { seasonNumber: number; episodeCount: number; name: string }[] | undefined;
       if (detailRes.ok) {
         const detail = await detailRes.json();
         airStatus = detail.status || undefined;
+        totalSeasons = detail.number_of_seasons || undefined;
+        if (detail.seasons && Array.isArray(detail.seasons)) {
+          seasonDetails = detail.seasons
+            .filter((s: Record<string, unknown>) => (s.season_number as number) > 0)
+            .map((s: Record<string, unknown>) => ({
+              seasonNumber: s.season_number as number,
+              episodeCount: s.episode_count as number,
+              name: (s.name as string) || `Season ${s.season_number}`,
+            }));
+        }
       }
 
       let platforms: Platform[] | undefined;
@@ -102,7 +116,7 @@ async function enrichTMDBTV(results: SearchResult[], key: string): Promise<Searc
         if (allPlatforms.length > 0) platforms = allPlatforms;
       }
 
-      return { ...r, airStatus, platforms };
+      return { ...r, airStatus, platforms, totalSeasons, seasonDetails };
     } catch {
       return r;
     }
@@ -114,7 +128,7 @@ async function enrichTMDBTV(results: SearchResult[], key: string): Promise<Searc
 // AniList Anime - GraphQL, no key needed
 async function searchAniListAnime(query: string): Promise<SearchResult[]> {
   try {
-    const gql = `query($search:String){Page(perPage:5){media(search:$search,type:ANIME){id title{romaji english}description episodes status startDate{year month day}coverImage{large}averageScore genres}}}`;
+    const gql = `query($search:String){Page(perPage:5){media(search:$search,type:ANIME){id title{romaji english}description episodes status startDate{year month day}coverImage{large}averageScore genres relations{edges{relationType node{id title{romaji}}}}}}}`;
     const res = await fetch('https://graphql.anilist.co', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -123,19 +137,40 @@ async function searchAniListAnime(query: string): Promise<SearchResult[]> {
     if (!res.ok) return [];
     const data = await res.json();
     const items = data?.data?.Page?.media || [];
-    return items.map((m: Record<string, unknown>) => ({
-      id: m.id,
-      title: (m.title as { romaji: string })?.romaji || '',
-      description: stripHtml((m.description as string) || ''),
-      category: 'anime',
-      coverImage: (m.coverImage as { large: string })?.large,
-      rating: m.averageScore as number,
-      totalEpisodes: m.episodes as number,
-      genres: (m.genres as string[]) || [],
-      releaseDate: m.startDate ? `${(m.startDate as { year: number }).year}-${(m.startDate as { month: number }).month}` : undefined,
-      source: 'anilist',
-      airStatus: mapAniListStatus(m.status as string),
-    }));
+    return items.map((m: Record<string, unknown>) => {
+      // Extract prequel relations (previous seasons)
+      const relations = (m.relations as { edges: { relationType: string; node: { id: number; title: { romaji: string } } }[] })?.edges || [];
+      const prequels = relations
+        .filter((r) => r.relationType === 'PREQUEL')
+        .map((r) => ({
+          id: r.node.id,
+          title: r.node.title.romaji || '',
+        }));
+
+      return {
+        id: m.id,
+        title: (m.title as { romaji: string })?.romaji || '',
+        description: stripHtml((m.description as string) || ''),
+        category: 'anime',
+        coverImage: (m.coverImage as { large: string })?.large,
+        rating: m.averageScore as number,
+        totalEpisodes: m.episodes as number,
+        genres: (m.genres as string[]) || [],
+        releaseDate: m.startDate ? `${(m.startDate as { year: number }).year}-${(m.startDate as { month: number }).month}` : undefined,
+        source: 'anilist',
+        airStatus: mapAniListStatus(m.status as string),
+        totalSeasons: prequels.length + 1,
+        seasonDetails: [
+          ...prequels.map((p, i) => ({
+            seasonNumber: i + 1,
+            episodeCount: 0,
+            name: p.title,
+            anilistId: p.id,
+          })),
+          { seasonNumber: prequels.length + 1, episodeCount: (m.episodes as number) || 0, name: (m.title as { romaji: string })?.romaji || '', anilistId: m.id as number },
+        ],
+      };
+    });
   } catch { return []; }
 }
 
