@@ -216,9 +216,15 @@ async function searchTMDB(query: string, category?: string | null): Promise<Sear
   } catch { /* ignore */ }
 
   // Enrich TV results with air status + watch providers
+  // Wrapped in try/catch so enrichment failure never drops the base results
   const tvResults = results.filter(r => r.category === 'tv');
   const otherResults = results.filter(r => r.category !== 'tv');
-  const enrichedTV = await enrichTMDBTV(tvResults, key);
+  let enrichedTV = tvResults;
+  try {
+    enrichedTV = await enrichTMDBTV(tvResults, key);
+  } catch {
+    // Enrichment failed — return base results without enrichment
+  }
 
   return [...otherResults, ...enrichedTV];
 }
