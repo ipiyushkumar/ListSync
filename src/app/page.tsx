@@ -23,6 +23,14 @@ interface MediaItem {
   updatedAt: string;
 }
 
+const CATEGORY_LINK: Record<string, string> = {
+  anime: '/anime',
+  manhwa: '/manhwa',
+  movie: '/movies',
+  tv: '/tv',
+  music: '/music',
+};
+
 const CATEGORY_META: Record<string, { icon: LucideIcon; label: string }> = {
   anime: { icon: Film, label: 'Anime' },
   manhwa: { icon: BookOpen, label: 'Manhwa' },
@@ -80,6 +88,20 @@ export default function Dashboard() {
       .then(data => setMedia(Array.isArray(data) ? data : data.items || []))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  // Keyboard shortcut: / to go to search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        window.location.href = '/search';
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   const stats = useMemo(() => {
@@ -275,7 +297,8 @@ export default function Dashboard() {
                   return (
                     <tr
                       key={item.id}
-                      className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors duration-80"
+                      onClick={() => window.location.href = CATEGORY_LINK[item.category] || '/'}
+                      className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors duration-80 cursor-pointer"
                     >
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2.5">

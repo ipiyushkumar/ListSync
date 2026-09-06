@@ -43,17 +43,22 @@ export async function POST(request: NextRequest) {
 
   if (existing) {
     // Update existing entry with new data (merge, don't overwrite user progress)
+    const updateData: Record<string, unknown> = {};
+    if (body.description) updateData.description = body.description;
+    if (body.posterUrl || body.coverImage) updateData.posterUrl = body.posterUrl || body.coverImage;
+    if (body.totalEpisodes) updateData.totalEpisodes = body.totalEpisodes;
+    if (body.rating) updateData.rating = body.rating;
+    if (body.releaseDate) updateData.releaseDate = body.releaseDate;
+    if (body.genres) updateData.genres = JSON.stringify(body.genres);
+    if (body.platforms) updateData.platforms = JSON.stringify(body.platforms);
+    // Backfill externalId/externalSource if missing on existing entry
+    if (body.externalId && !existing.externalId) updateData.externalId = body.externalId;
+    if (body.externalSource && !existing.externalSource) updateData.externalSource = body.externalSource;
+    // Don't overwrite status or currentEp — user's progress takes priority
+
     const media = await prisma.media.update({
       where: { id: existing.id },
-      data: {
-        ...(body.description && { description: body.description }),
-        ...(body.posterUrl || body.coverImage) && { posterUrl: body.posterUrl || body.coverImage },
-        ...(body.totalEpisodes && { totalEpisodes: body.totalEpisodes }),
-        ...(body.rating && { rating: body.rating }),
-        ...(body.genres && { genres: JSON.stringify(body.genres) }),
-        ...(body.releaseDate && { releaseDate: body.releaseDate }),
-        // Don't overwrite status or currentEp — user's progress takes priority
-      },
+      data: updateData,
     });
     return NextResponse.json(media);
   }

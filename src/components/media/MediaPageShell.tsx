@@ -226,7 +226,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
           )}
         </div>
 
-        <div className="relative">
+        <div className="relative z-30">
           <button
             onClick={() => setShowSortMenu(!showSortMenu)}
             className="flex items-center gap-2 px-3 py-2 bg-gray-900 border border-gray-800 rounded-lg text-sm text-gray-400 hover:text-gray-200 hover:border-gray-700 transition-colors"
