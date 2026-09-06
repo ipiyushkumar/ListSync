@@ -118,7 +118,17 @@ export default function SearchPage() {
   const [library, setLibrary] = useState<LibraryEntry[]>([]);
   const [searched, setSearched] = useState(false);
   const [selectedSeasons, setSelectedSeasons] = useState<Record<string, number>>({});
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [showRecent, setShowRecent] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load recent searches from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('listsync-recent-searches');
+      if (stored) setRecentSearches(JSON.parse(stored));
+    } catch { /* ignore */ }
+  }, []);
 
   // ESC key to clear search input and results
   useEffect(() => {
@@ -176,6 +186,10 @@ export default function SearchPage() {
       const data = await res.json();
       const raw: SearchResult[] = Array.isArray(data) ? data : data.results || data.data || [];
       setResults(raw);
+      // Save to recent searches
+      const updated = [q, ...recentSearches.filter(s => s !== q)].slice(0, 8);
+      setRecentSearches(updated);
+      try { localStorage.setItem('listsync-recent-searches', JSON.stringify(updated)); } catch { /* ignore */ }
     } catch (err: unknown) {
       setToast({ message: `Search failed: ${err instanceof Error ? err.message : 'Unknown error'}`, type: 'error' });
     } finally {
@@ -264,7 +278,9 @@ export default function SearchPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyDown={(e) => { if (e.key === 'Enter') { setShowRecent(false); handleSearch(); } }}
+              onFocus={() => { if (!query && recentSearches.length > 0) setShowRecent(true); }}
+              onBlur={() => setTimeout(() => setShowRecent(false), 150)}
               placeholder="Search for any title..."
               className="w-full bg-gray-900 border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors font-sans"
             />
@@ -286,6 +302,22 @@ export default function SearchPage() {
             Search
           </button>
         </div>
+
+        {/* Recent searches dropdown */}
+        {showRecent && recentSearches.length > 0 && !query && (
+          <div className="mt-1 bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+            <div className="px-3 py-1.5 text-[10px] text-gray-500 uppercase tracking-wider">Recent</div>
+            {recentSearches.map((term) => (
+              <button
+                key={term}
+                onClick={() => { setQuery(term); setShowRecent(false); }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800/50 transition-colors"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Category pills */}
         <div className="flex gap-1.5">
