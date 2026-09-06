@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Search, SlidersHorizontal, Grid3X3, List,
-  ArrowUpDown, ChevronDown, X,
+  ArrowUpDown, ChevronDown, X, CheckSquare, Trash2,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import StatCard from './StatCard';
@@ -71,6 +71,9 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [activeGenre, setActiveGenre] = useState<string | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkActionMenu, setBulkActionMenu] = useState(false);
 
   /* ── Data fetch ──────────────────────────────────────── */
   const fetchMedia = useCallback(async () => {
@@ -196,6 +199,60 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
     } catch { /* silent */ }
   }, [handleUpdate]);
 
+  /* ── Bulk actions ────────────────────────────────────── */
+  const toggleSelectMode = () => {
+    setSelectMode((prev) => !prev);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === displayed.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(displayed.map((m) => m.id)));
+    }
+  };
+
+  const handleBulkStatusChange = async (newStatus: string) => {
+    for (const id of selectedIds) {
+      const item = media.find((m) => m.id === id);
+      if (!item || item.status === newStatus) continue;
+      try {
+        const res = await fetch(`/api/media/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          handleUpdate(updated);
+        }
+      } catch { /* silent */ }
+    }
+    setSelectedIds(new Set());
+    setBulkActionMenu(false);
+  };
+
+  const handleBulkDelete = async () => {
+    for (const id of selectedIds) {
+      try {
+        await fetch(`/api/media/${id}`, { method: 'DELETE' });
+        handleDelete(id);
+      } catch { /* silent */ }
+    }
+    setSelectedIds(new Set());
+    setBulkActionMenu(false);
+  };
+
   /* ── Render ──────────────────────────────────────────── */
   return (
     <div className="space-y-6">
@@ -290,6 +347,18 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
             <List className="w-4 h-4" />
           </button>
         </div>
+
+        <button
+          onClick={toggleSelectMode}
+          className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm font-medium transition-colors ${
+            selectMode
+              ? 'bg-accent/10 border-accent/50 text-accent'
+              : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-gray-200 hover:border-gray-700'
+          }`}
+        >
+          <CheckSquare className="w-4 h-4" />
+          {selectMode ? `Cancel (${selectedIds.size})` : 'Select'}
+        </button>
       </div>
 
       {/* Genre chips */}
@@ -332,6 +401,22 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
         </div>
       )}
 
+      {/* Select all bar */}
+      {selectMode && !loading && displayed.length > 0 && (
+        <div className="flex items-center gap-3 py-2">
+          <button
+            onClick={selectAll}
+            className="flex items-center gap-2 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg text-sm text-gray-400 hover:text-gray-200 hover:border-gray-700 transition-colors"
+          >
+            <CheckSquare className="w-4 h-4" />
+            {selectedIds.size === displayed.length ? 'Deselect all' : `Select all (${displayed.length})`}
+          </button>
+          {selectedIds.size > 0 && (
+            <span className="text-sm text-accent font-medium">{selectedIds.size} selected</span>
+          )}
+        </div>
+      )}
+
       {/* Content */}
       {loading ? (
         viewMode === 'grid' ? (
@@ -369,14 +454,34 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {displayed.map((item) => (
-            <MediaGridCard
-              key={item.id}
-              item={item}
-              onClick={() => setSelectedMedia(item)}
-              onIncrement={() => handleIncrement(item)}
-              incrementLabel={incrementLabel}
-              aspectRatio={aspectRatio}
-            />
+            <div key={item.id} className="relative">
+              {selectMode && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
+                  className={`absolute top-2 left-2 z-20 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${
+                    selectedIds.has(item.id)
+                      ? 'bg-accent border-accent text-white'
+                      : 'bg-gray-800/80 border-gray-600 text-transparent hover:border-gray-400'
+                  }`}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+              )}
+              <div
+                onClick={selectMode ? () => toggleSelect(item.id) : undefined}
+                className={`${selectMode ? 'cursor-pointer' : ''} ${selectedIds.has(item.id) ? 'ring-2 ring-accent rounded-xl' : ''}`}
+              >
+                <MediaGridCard
+                  item={item}
+                  onClick={() => !selectMode && setSelectedMedia(item)}
+                  onIncrement={() => handleIncrement(item)}
+                  incrementLabel={incrementLabel}
+                  aspectRatio={aspectRatio}
+                />
+              </div>
+            </div>
           ))}
         </div>
       ) : (
@@ -403,6 +508,44 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
           progressLabel={progressLabel}
           incrementLabel={incrementLabel}
         />
+      )}
+
+      {/* Floating bulk action bar */}
+      {selectMode && selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl shadow-black/50 px-4 py-3 flex items-center gap-4">
+          <span className="text-sm text-gray-300 font-medium whitespace-nowrap">
+            {selectedIds.size} item{selectedIds.size !== 1 ? 's' : ''}
+          </span>
+          <div className="relative">
+            <button
+              onClick={() => setBulkActionMenu(!bulkActionMenu)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Change status
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+            {bulkActionMenu && (
+              <div className="absolute bottom-full mb-2 left-0 bg-gray-900 border border-gray-800 rounded-lg shadow-xl shadow-black/30 py-1 min-w-[140px]">
+                {statusFilters.filter((s) => s !== 'all').map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => handleBulkStatusChange(status)}
+                    className="w-full text-left px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200 hover:bg-gray-800 transition-colors capitalize"
+                  >
+                    {status.replace('-', ' ')}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleBulkDelete}
+            className="flex items-center gap-2 px-3 py-1.5 bg-red-600/80 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Delete
+          </button>
+        </div>
       )}
 
       {/* Close sort menu on outside click */}
