@@ -229,11 +229,23 @@ export default function SearchPage() {
   // Auto re-search when category filter changes (if already searched)
   const handleSearchRef = useRef<() => Promise<void>>(undefined);
   handleSearchRef.current = handleSearch;
+
+  // Debounced auto-search: triggers 500ms after typing stops or filter changes
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
-    if (searched && query.trim() && !loading) {
-      handleSearchRef.current?.();
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    if (!query.trim()) {
+      setResults([]);
+      setSearched(false);
+      return;
     }
-  }, [filter, searched, query, loading]);
+    debounceTimerRef.current = setTimeout(() => {
+      handleSearchRef.current?.();
+    }, 500);
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, [query, filter]);
 
   const addToLibrary = async (item: SearchResult) => {
     const title = item.title || item.name || 'Unknown';
