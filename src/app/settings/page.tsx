@@ -294,6 +294,34 @@ export default function SettingsPage() {
     }
   };
 
+  const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const text = await file.text();
+      const res = await fetch('/api/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/csv' },
+        body: text,
+      });
+      const result = await res.json();
+      setImportResult(result);
+      if (result.errors.length === 0) {
+        showToast('success', `Imported ${result.imported} items from CSV`);
+      } else {
+        showToast('info', `Imported ${result.imported}, ${result.skipped} skipped`);
+      }
+    } catch {
+      setImportResult({ imported: 0, skipped: 0, errors: ['Invalid CSV file'] });
+      showToast('error', 'Failed to import CSV data');
+    } finally {
+      setImporting(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
   /* ── Loading state ────────────────────────────────────────── */
   if (!settings) {
     return (
@@ -543,8 +571,30 @@ export default function SettingsPage() {
                 <Upload className="w-5 h-5 text-blue-400" />
               </div>
               <div className="text-left">
-                <div className="text-sm font-medium text-white">{importing ? 'Importing...' : 'Import Data'}</div>
+                <div className="text-sm font-medium text-white">{importing ? 'Importing...' : 'Import JSON'}</div>
                 <div className="text-xs text-gray-500">Restore from JSON backup</div>
+              </div>
+            </label>
+          </div>
+
+          <div>
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImportCsv}
+              className="hidden"
+              id="import-csv-file"
+            />
+            <label
+              htmlFor="import-csv-file"
+              className={`flex items-center gap-3 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-600 rounded-xl transition-all group cursor-pointer ${importing ? 'opacity-50 pointer-events-none' : ''}`}
+            >
+              <div className="p-2 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
+                <Upload className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-medium text-white">{importing ? 'Importing...' : 'Import CSV'}</div>
+                <div className="text-xs text-gray-500">Import from spreadsheet</div>
               </div>
             </label>
           </div>
