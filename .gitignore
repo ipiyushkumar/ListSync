@@ -49,3 +49,6 @@ prisma/*.db-journal
 
 # pnpm
 pnpm-lock.yaml
+
+# npm (project uses pnpm)
+package-lock.json
