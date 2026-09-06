@@ -88,7 +88,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetch('/api/media')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => setMedia(Array.isArray(data) ? data : data.items || []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -106,7 +106,7 @@ export default function Dashboard() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [router]);
 
   const stats = useMemo(() => {
     const byCategory: Record<string, number> = {};

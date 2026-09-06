@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Search, Star, Tv, BookOpen, Calendar, FileText, Plus,
-  Check, Loader2, Sparkles, Film, Disc, ChevronDown,
+  Check, Loader2, Sparkles, Film,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 
@@ -94,7 +94,7 @@ export default function SearchPage() {
   // Fetch library to detect duplicates
   useEffect(() => {
     fetch('/api/media')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(data => {
         const items = Array.isArray(data) ? data : data.items || [];
         setLibrary(items.map((m: Record<string, unknown>) => ({
