@@ -270,19 +270,27 @@ export default function MediaDetailPage() {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Poster */}
           <div className="w-full md:w-80 flex-shrink-0">
-            {media.posterUrl ? (
-              <img
-                src={media.posterUrl}
-                alt={media.title}
-                className="w-full aspect-[2/3] object-cover rounded-xl shadow-2xl"
-              />
-            ) : (
+            <div className="relative w-full aspect-[2/3] rounded-xl shadow-2xl overflow-hidden">
+              {media.posterUrl ? (
+                <>
+                  <div className="absolute inset-0 z-0 bg-gradient-to-br from-purple-900 via-gray-900 to-gray-800 flex items-center justify-center">
+                    {React.createElement(CATEGORY_ICONS[media.category] || Film, { size: 64, className: 'text-gray-500' })}
+                  </div>
+                  <img
+                    src={media.posterUrl}
+                    alt={media.title}
+                    className="relative z-10 w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </>
+              ) : (
               <div className="w-full aspect-[2/3] rounded-xl shadow-2xl bg-gradient-to-br from-purple-900 via-gray-900 to-gray-800 flex items-center justify-center">
                 <span className="text-gray-500 text-4xl">
                   {React.createElement(CATEGORY_ICONS[media.category] || Film, { size: 64 })}
                 </span>
               </div>
             )}
+            </div>
           </div>
 
           {/* Info */}
