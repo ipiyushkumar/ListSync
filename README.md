@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ListSync
+
+**Your unified media tracker** — track anime, manhwa, movies, TV shows, and music in one place.
+
+## Features
+
+- 📊 Dashboard with stats and progress tracking
+- 🔍 Search across Jikan (anime), AniList (manhwa), TMDB (movies/TV)
+- 📺 Category-specific views with filtering
+- ⭐ Rating and status management
+- 🔌 BYOI (Bring Your Own Integration) connector architecture
+- 🌐 Chrome extension for auto-detection of streaming sites
+- 🤖 MCP server for AI assistant integration
+- 🎨 Modern dark theme with purple accents
+
+## Tech Stack
+
+- **Frontend**: Next.js 16, React 19, Tailwind CSS v4, Redux Toolkit
+- **Backend**: Next.js API Routes, Prisma ORM
+- **Database**: SQLite
+- **Icons**: Lucide React
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Clone
+git clone https://github.com/piyushdev2026/ListSync.git
+cd ListSync
+
+# Install (uses pnpm)
+pnpm install
+
+# Generate Prisma client
+npx prisma generate
+
+# Push database schema
+npx prisma db push
+
+# Start dev server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Build
+pnpm build
 
-## Learn More
+# Start
+pnpm start -- -p 3085
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | SQLite connection string |
+| `TMDB_API_KEY` | No | TMDB API key for movie/TV search |
+| `ANILIST_API_KEY` | No | AniList API key for higher rate limits |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Chrome Extension
 
-## Deploy on Vercel
+The extension auto-detects what you're watching on:
+- Netflix
+- Crunchyroll
+- YouTube
+- Spotify
+- MyAnimeList
+- AniList
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Load `src/extension/` as an unpacked extension in Chrome.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## MCP Server
+
+Integrate with AI assistants:
+
+```json
+{
+  "mcpServers": {
+    "listsync": {
+      "command": "npx",
+      "args": ["tsx", "src/mcp/server.ts"]
+    }
+  }
+}
+```
+
+## Project Structure
+
+```
+ListSync/
+├── prisma/           # Database schema and migrations
+├── src/
+│   ├── app/          # Next.js pages and API routes
+│   ├── components/   # Reusable UI components
+│   ├── lib/          # Utilities and connectors
+│   │   └── connectors/  # BYOI connector implementations
+│   ├── mcp/          # MCP server
+│   ├── store/        # Redux store
+│   ├── types/        # TypeScript types
+│   └── extension/    # Chrome extension
+├── scripts/          # Import and utility scripts
+└── public/           # Static assets
+```
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/media` | List media (filter by category, status) |
+| POST | `/api/media` | Add new media |
+| GET | `/api/media/[id]` | Get media details |
+| PUT | `/api/media/[id]` | Update media |
+| DELETE | `/api/media/[id]` | Delete media |
+| GET | `/api/search` | Search external APIs |
+| GET | `/api/stats` | Get library statistics |
+| GET | `/api/settings` | Get settings |
+| POST | `/api/settings` | Update settings |
+| GET | `/api/connectors` | List available connectors |
+
+## License
+
+MIT
