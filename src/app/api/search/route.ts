@@ -14,6 +14,11 @@ interface SearchResult {
   source: string;
 }
 
+// Strip HTML tags from text (AniList returns <br><br> in descriptions)
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
+}
+
 // Read API key from SQLite settings table via Prisma
 async function getApiKey(key: string): Promise<string> {
   try {
@@ -39,7 +44,7 @@ async function searchAniListAnime(query: string): Promise<SearchResult[]> {
     return items.map((m: Record<string, unknown>) => ({
       id: m.id,
       title: (m.title as { romaji: string })?.romaji || '',
-      description: (m.description as string) || '',
+      description: stripHtml((m.description as string) || ''),
       category: 'anime',
       coverImage: (m.coverImage as { large: string })?.large,
       rating: m.averageScore as number,
@@ -66,7 +71,7 @@ async function searchAniList(query: string): Promise<SearchResult[]> {
     return items.map((m: Record<string, unknown>) => ({
       id: m.id,
       title: (m.title as { romaji: string })?.romaji || '',
-      description: (m.description as string) || '',
+      description: stripHtml((m.description as string) || ''),
       category: 'manhwa',
       coverImage: (m.coverImage as { large: string })?.large,
       rating: m.averageScore as number,

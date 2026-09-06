@@ -169,18 +169,28 @@ server.tool(
   'Get watchlist statistics: counts by category and status',
   {},
   async () => {
-    const anime = await apiCall('/api/media?category=anime');
-    const manhwa = await apiCall('/api/media?category=manhwa');
-    const movie = await apiCall('/api/media?category=movie');
-    const tv = await apiCall('/api/media?category=tv');
-    const music = await apiCall('/api/media?category=music');
+    const countsByStatus = (items: { status: string }[]) => {
+      const counts: Record<string, number> = {};
+      for (const item of items) {
+        counts[item.status] = (counts[item.status] || 0) + 1;
+      }
+      return counts;
+    };
+
+    const [anime, manhwa, movie, tv, music] = await Promise.all([
+      apiCall('/api/media?category=anime'),
+      apiCall('/api/media?category=manhwa'),
+      apiCall('/api/media?category=movie'),
+      apiCall('/api/media?category=tv'),
+      apiCall('/api/media?category=music'),
+    ]);
 
     const stats = {
-      anime: { total: anime.length, watching: anime.filter((m: { status: string }) => m.status === 'watching').length, completed: anime.filter((m: { status: string }) => m.status === 'completed').length },
-      manhwa: { total: manhwa.length, watching: manhwa.filter((m: { status: string }) => m.status === 'watching').length, completed: manhwa.filter((m: { status: string }) => m.status === 'completed').length },
-      movies: { total: movie.length, watching: movie.filter((m: { status: string }) => m.status === 'watching').length, completed: movie.filter((m: { status: string }) => m.status === 'completed').length },
-      tv: { total: tv.length, watching: tv.filter((m: { status: string }) => m.status === 'watching').length, completed: tv.filter((m: { status: string }) => m.status === 'completed').length },
-      music: { total: music.length, watching: music.filter((m: { status: string }) => m.status === 'watching').length, completed: music.filter((m: { status: string }) => m.status === 'completed').length },
+      anime: { total: anime.length, byStatus: countsByStatus(anime) },
+      manhwa: { total: manhwa.length, byStatus: countsByStatus(manhwa) },
+      movies: { total: movie.length, byStatus: countsByStatus(movie) },
+      tv: { total: tv.length, byStatus: countsByStatus(tv) },
+      music: { total: music.length, byStatus: countsByStatus(music) },
       grandTotal: anime.length + manhwa.length + movie.length + tv.length + music.length,
     };
 
