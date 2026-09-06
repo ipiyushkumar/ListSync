@@ -6,8 +6,19 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100);
+    const category = searchParams.get('category');
+    const mediaId = searchParams.get('mediaId');
+
+    const where: Record<string, unknown> = {};
+    if (category) {
+      where.media = { category };
+    }
+    if (mediaId) {
+      where.mediaId = mediaId;
+    }
 
     const activities = await prisma.activity.findMany({
+      where,
       take: limit,
       orderBy: { timestamp: 'desc' },
       include: {

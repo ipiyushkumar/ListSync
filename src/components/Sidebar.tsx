@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Search, Film, BookOpen, Clapperboard, Tv, Music, Settings } from 'lucide-react';
+import { LayoutDashboard, Search, Film, BookOpen, Clapperboard, Tv, Music, Activity, Settings, Download } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 const navItems: { label: string; href: string; icon: LucideIcon }[] = [
@@ -13,7 +13,9 @@ const navItems: { label: string; href: string; icon: LucideIcon }[] = [
   { label: 'Movies', href: '/movies', icon: Clapperboard },
   { label: 'TV Shows', href: '/tv', icon: Tv },
   { label: 'Music', href: '/music', icon: Music },
+  { label: 'Activity', href: '/activity', icon: Activity },
   { label: 'Settings', href: '/settings', icon: Settings },
+  { label: 'Export', href: '/export', icon: Download },
 ];
 
 export default function Sidebar() {

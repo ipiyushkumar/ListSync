@@ -73,6 +73,25 @@ export default function MediaDetailModal({
       if (res.ok) {
         const updated = await res.json();
         onUpdate(updated);
+        // Fire-and-forget: log activity based on status changes
+        const origStatus = toUiStatus(media.status);
+        const finalStatus = typeof body.status === 'string' ? body.status : editStatus;
+        if (finalStatus === 'completed' && origStatus !== 'completed') {
+          fetch('/api/activity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mediaId: media.id, action: 'completed', source: 'manual' }),
+          }).catch(() => {});
+        } else if (
+          ['watching', 'reading', 'listening'].includes(finalStatus) &&
+          origStatus === 'planned'
+        ) {
+          fetch('/api/activity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mediaId: media.id, action: 'started', source: 'manual' }),
+          }).catch(() => {});
+        }
       }
     } finally {
       setSaving(false);

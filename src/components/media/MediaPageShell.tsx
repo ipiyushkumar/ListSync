@@ -178,6 +178,20 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
       if (res.ok) {
         const updated = await res.json();
         handleUpdate(updated);
+        // Fire-and-forget: log episode watched activity
+        fetch('/api/activity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mediaId: item.id, action: 'episode_watched', episode: newEp, source: 'auto' }),
+        }).catch(() => {});
+        // Log completion if auto-completed
+        if (body.status === 'completed') {
+          fetch('/api/activity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mediaId: item.id, action: 'completed', source: 'auto' }),
+          }).catch(() => {});
+        }
       }
     } catch { /* silent */ }
   }, [handleUpdate]);
