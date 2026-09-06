@@ -26,7 +26,7 @@ export async function GET() {
       category: avail.category,
       isActive: db?.isActive ?? false,
       lastSync: db?.lastSync?.toISOString() || null,
-      config: db?.config ? JSON.parse(db.config) : null,
+      config: db?.config ? (() => { try { return JSON.parse(db.config); } catch { return null; } })() : null,
     };
   });
 
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       where: { id: existing.id },
       data: {
         isActive,
-        config: config ? JSON.stringify(config) : existing.config,
+        config: config != null ? JSON.stringify(config) : existing.config,
       },
     });
   } else {

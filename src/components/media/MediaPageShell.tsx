@@ -10,6 +10,7 @@ import StatCard from './StatCard';
 import MediaGridCard from './MediaGridCard';
 import MediaListRow from './MediaListRow';
 import MediaDetailModal from './MediaDetailModal';
+import { parseGenres } from '@/lib/utils';
 import type { Media } from './MediaGridCard';
 
 /* ─── Types ──────────────────────────────────────────────── */
@@ -95,9 +96,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   const allGenres = useMemo(() => {
     const s = new Set<string>();
     media.forEach((m) => {
-      if (m.genres) {
-        try { JSON.parse(m.genres).forEach((g: string) => s.add(g)); } catch { /* skip */ }
-      }
+      parseGenres(m.genres).forEach((g) => s.add(g));
     });
     return Array.from(s).sort();
   }, [media]);
@@ -112,10 +111,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
     }
 
     if (activeGenre) {
-      items = items.filter((m) => {
-        if (!m.genres) return false;
-        try { return JSON.parse(m.genres).includes(activeGenre); } catch { return false; }
-      });
+      items = items.filter((m) => parseGenres(m.genres).includes(activeGenre));
     }
 
     if (searchQuery.trim()) {
@@ -165,15 +161,17 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
     if (item.totalEpisodes && newEp >= item.totalEpisodes && item.status !== 'completed') {
       body.status = 'completed';
     }
-    const res = await fetch(`/api/media/${item.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      handleUpdate(updated);
-    }
+    try {
+      const res = await fetch(`/api/media/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        handleUpdate(updated);
+      }
+    } catch { /* silent */ }
   }, [handleUpdate]);
 
   /* ── Render ──────────────────────────────────────────── */
