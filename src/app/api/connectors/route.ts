@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, connector });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 }

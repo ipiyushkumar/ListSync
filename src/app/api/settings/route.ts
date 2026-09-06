@@ -99,8 +99,8 @@ export async function POST(request: NextRequest) {
         create: { key: u.key, value: u.value, category: u.key.split('.')[0] },
       });
     }
-  } catch (error) {
-    return NextResponse.json({ error: 'Database error', detail: String(error) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });
