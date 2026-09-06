@@ -14,7 +14,7 @@ import type { Media } from './MediaGridCard';
 
 /* ─── Types ──────────────────────────────────────────────── */
 
-type SortKey = 'title' | 'rating' | 'progress' | 'recent' | 'progress';
+type SortKey = 'title' | 'rating' | 'progress' | 'recent';
 type SortDir = 'asc' | 'desc';
 type ViewMode = 'grid' | 'list';
 
@@ -72,7 +72,6 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   const fetchMedia = useCallback(async () => {
     try {
       const params = new URLSearchParams({ category });
-      if (activeFilter !== 'all') params.set('status', activeFilter);
       const res = await fetch(`/api/media?${params}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
@@ -80,7 +79,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
     } catch { /* empty */ } finally {
       setLoading(false);
     }
-  }, [category, activeFilter]);
+  }, [category]);
 
   useEffect(() => { setLoading(true); fetchMedia(); }, [fetchMedia]);
 
@@ -106,6 +105,11 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   /* ── Filtered + sorted ──────────────────────────────── */
   const displayed = useMemo(() => {
     let items = [...media];
+
+    // Status filter (client-side)
+    if (activeFilter !== 'all') {
+      items = items.filter((m) => m.status === activeFilter);
+    }
 
     if (activeGenre) {
       items = items.filter((m) => {
@@ -139,7 +143,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
     });
 
     return items;
-  }, [media, searchQuery, sortKey, sortDir, activeGenre]);
+  }, [media, searchQuery, sortKey, sortDir, activeGenre, activeFilter]);
 
   /* ── Mutations ───────────────────────────────────────── */
   const handleUpdate = useCallback((updated: Media) => {

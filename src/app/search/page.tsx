@@ -330,7 +330,7 @@ export default function SearchPage() {
 
                   {/* In Library indicator — always visible */}
                   {inLibrary && (
-                    <div className="absolute top-2 right-2 mt-6 px-1.5 py-0.5 rounded bg-emerald-500/90 text-[10px] font-medium text-white flex items-center gap-0.5">
+                    <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-emerald-500/90 text-[10px] font-medium text-white flex items-center gap-0.5">
                       <Check className="w-2.5 h-2.5" />
                       In Library
                     </div>
