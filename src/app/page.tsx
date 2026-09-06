@@ -296,11 +296,12 @@ export default function Dashboard() {
                   const progress = item.totalEpisodes ? `${item.currentEp || 0}/${item.totalEpisodes}` : '—';
                   const updated = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
 
+
                   return (
                     <tr
                       key={item.id}
                       onClick={() => window.location.href = CATEGORY_LINK[item.category] || '/'}
-                      className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors duration-80 cursor-pointer"
+                      className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors duration-200 cursor-pointer"
                     >
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2.5">

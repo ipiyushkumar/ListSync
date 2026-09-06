@@ -3,17 +3,8 @@
 import { Plus } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
+import { parseGenres } from '@/lib/utils';
 import type { Media } from './MediaGridCard';
-
-function parseGenres(genres?: string): string[] {
-  if (!genres) return [];
-  try {
-    const parsed = JSON.parse(genres);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
 
 export default function MediaListRow({
   item,

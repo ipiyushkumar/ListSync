@@ -3,19 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronDown, ChevronUp, Trash2, ExternalLink } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
+import { parseGenres } from '@/lib/utils';
 import type { Media } from './MediaGridCard';
 
 const STATUS_OPTIONS = ['watching', 'reading', 'listening', 'completed', 'planned', 'dropped', 'on-hold'] as const;
-
-function parseJson(str?: string): string[] {
-  if (!str) return [];
-  try {
-    const p = JSON.parse(str);
-    return Array.isArray(p) ? p : [];
-  } catch {
-    return [];
-  }
-}
 
 export default function MediaDetailModal({
   media,
@@ -47,8 +38,8 @@ export default function MediaDetailModal({
     setDeleting(false);
   }, [media.id, media.status, media.currentEp]);
 
-  const genres = parseJson(media.genres);
-  const platforms = parseJson(media.platforms);
+  const genres = parseGenres(media.genres);
+  const platforms = parseGenres(media.platforms);
 
   const hasChanges = editStatus !== media.status || editEp !== media.currentEp;
 

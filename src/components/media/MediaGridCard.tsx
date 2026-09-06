@@ -3,6 +3,7 @@
 import { Star } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
+import { parseGenres } from '@/lib/utils';
 
 export interface Media {
   id: string;
@@ -22,16 +23,6 @@ export interface Media {
   externalSource?: string;
   createdAt?: string;
   updatedAt?: string;
-}
-
-function parseGenres(genres?: string): string[] {
-  if (!genres) return [];
-  try {
-    const parsed = JSON.parse(genres);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
 }
 
 export default function MediaGridCard({
