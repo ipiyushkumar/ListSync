@@ -22,6 +22,8 @@ import {
   Pause,
   XCircle,
   ListTodo,
+  Clock,
+  History,
 } from 'lucide-react';
 
 interface Media {
@@ -126,6 +128,13 @@ export default function MediaDetailPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [incrementing, setIncrementing] = useState(false);
+  const [activities, setActivities] = useState<Array<{
+    id: string;
+    action: string;
+    episode: number | null;
+    timestamp: string;
+    source: string | null;
+  }>>([]);
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -144,6 +153,15 @@ export default function MediaDetailPage() {
   useEffect(() => {
     fetchMedia();
   }, [fetchMedia]);
+
+  // Fetch activity history for this media item
+  useEffect(() => {
+    if (!id) return;
+    fetch(`/api/activity?mediaId=${id}&limit=50`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setActivities(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [id]);
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this?')) return;
@@ -427,6 +445,61 @@ export default function MediaDetailPage() {
                 <Trash2 size={16} />
                 Delete
               </button>
+            </div>
+
+            {/* Activity Timeline */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <History size={14} />
+                Watch History
+                {activities.length > 0 && (
+                  <span className="text-[10px] px-1.5 py-0.5 bg-gray-800 rounded-full text-gray-500 font-normal">
+                    {activities.length}
+                  </span>
+                )}
+              </h3>
+              {activities.length === 0 ? (
+                <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 text-center">
+                  <Clock size={20} className="mx-auto text-gray-600 mb-2" />
+                  <p className="text-xs text-gray-500">No activity recorded yet</p>
+                  <p className="text-[10px] text-gray-600 mt-1">Mark episodes to start building history</p>
+                </div>
+              ) : (
+                <div className="bg-gray-900 rounded-xl border border-gray-800 divide-y divide-gray-800/50 max-h-64 overflow-y-auto">
+                  {activities.map((act) => {
+                    const actionLabel: Record<string, { label: string; color: string }> = {
+                      started: { label: 'Started', color: 'text-blue-400' },
+                      paused: { label: 'Paused', color: 'text-yellow-400' },
+                      completed: { label: 'Completed', color: 'text-green-400' },
+                      episode_watched: { label: 'Episode Watched', color: 'text-accent' },
+                      watched: { label: 'Watched', color: 'text-accent' },
+                      read: { label: 'Read', color: 'text-indigo-400' },
+                      listened: { label: 'Listened', color: 'text-pink-400' },
+                    };
+                    const info = actionLabel[act.action] || { label: act.action, color: 'text-gray-400' };
+                    return (
+                      <div key={act.id} className="flex items-center gap-3 px-4 py-2.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${info.color.replace('text-', 'bg-')} shrink-0`} />
+                        <div className="flex-1 min-w-0">
+                          <span className={`text-xs font-medium ${info.color}`}>
+                            {info.label}
+                          </span>
+                          {act.episode != null && (
+                            <span className="text-xs text-gray-500 ml-1.5">
+                              — EP {act.episode}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-gray-600 shrink-0">
+                          {new Date(act.timestamp).toLocaleDateString('en-US', {
+                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
