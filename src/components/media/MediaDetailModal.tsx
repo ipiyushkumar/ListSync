@@ -48,10 +48,21 @@ export default function MediaDetailModal({
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
+      const body: Record<string, unknown> = { status: editStatus, currentEp: editEp };
+      // Auto-complete when at total episodes
+      if (media.totalEpisodes && editEp >= media.totalEpisodes && editStatus !== 'completed') {
+        body.status = 'completed';
+        setEditStatus('completed');
+      }
+      // Auto-set back to watching when decrementing from completed
+      if (media.totalEpisodes && editEp < media.totalEpisodes && editStatus === 'completed') {
+        body.status = 'watching';
+        setEditStatus('watching');
+      }
       const res = await fetch(`/api/media/${media.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: editStatus, currentEp: editEp }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -60,7 +71,7 @@ export default function MediaDetailModal({
     } finally {
       setSaving(false);
     }
-  }, [media.id, editStatus, editEp, onUpdate]);
+  }, [media.id, media.totalEpisodes, editStatus, editEp, onUpdate]);
 
   const handleDelete = useCallback(async () => {
     if (!deleting) {
@@ -76,7 +87,11 @@ export default function MediaDetailModal({
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handler);
+      document.body.style.overflow = '';
+    };
   }, [onClose]);
 
   return (
@@ -244,14 +259,14 @@ export default function MediaDetailModal({
         <div className="p-4 border-t border-gray-800 flex items-center gap-3">
           <button
             onClick={handleDelete}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
               deleting
-                ? 'bg-red-600 text-white'
+                ? 'bg-red-600 text-white hover:bg-red-500'
                 : 'bg-gray-800 text-gray-400 hover:text-red-400 hover:bg-gray-700'
             }`}
-            title={deleting ? 'Click again to confirm' : 'Delete'}
           >
             <Trash2 className="w-4 h-4" />
+            {deleting ? 'Confirm delete' : 'Delete'}
           </button>
 
           <div className="flex-1" />

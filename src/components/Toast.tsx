@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { CheckCircle2, XCircle, Info, X } from 'lucide-react';
 
 interface ToastProps {
   message: string;
@@ -14,28 +15,27 @@ export default function Toast({ message, type = 'info', onClose }: ToastProps) {
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const bgMap = {
-    success: 'bg-green-600',
-    error: 'bg-red-600',
-    info: 'bg-gray-600',
+  const config = {
+    success: { bg: 'bg-emerald-600', Icon: CheckCircle2 },
+    error: { bg: 'bg-red-600', Icon: XCircle },
+    info: { bg: 'bg-gray-600', Icon: Info },
   };
 
-  const iconMap = {
-    success: '✓',
-    error: '✕',
-    info: 'ℹ',
-  };
+  const { bg, Icon } = config[type];
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl ${bgMap[type]} text-white`}>
-        <span className="text-lg font-bold">{iconMap[type]}</span>
+    <div
+      className="fixed bottom-6 right-6 z-50"
+      style={{ animation: 'toast-in 0.3s ease-out' }}
+    >
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl ${bg} text-white`}>
+        <Icon className="w-4 h-4 shrink-0" />
         <span className="text-sm font-medium">{message}</span>
         <button
           onClick={onClose}
-          className="ml-4 text-white/70 hover:text-white transition-colors"
+          className="ml-2 text-white/70 hover:text-white transition-colors"
         >
-          ✕
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

@@ -160,10 +160,15 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
     const newEp = item.totalEpisodes
       ? Math.min(item.currentEp + 1, item.totalEpisodes)
       : item.currentEp + 1;
+    const body: Record<string, unknown> = { currentEp: newEp };
+    // Auto-complete when hitting total episodes
+    if (item.totalEpisodes && newEp >= item.totalEpisodes && item.status !== 'completed') {
+      body.status = 'completed';
+    }
     const res = await fetch(`/api/media/${item.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ currentEp: newEp }),
+      body: JSON.stringify(body),
     });
     if (res.ok) {
       const updated = await res.json();
@@ -313,7 +318,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden animate-pulse">
-                <div className="aspect-[3/4] bg-gray-800" />
+                <div className={`${aspectRatio === 'square' ? 'aspect-square' : 'aspect-[3/4]'} bg-gray-800`} />
                 <div className="p-3 space-y-2">
                   <div className="h-4 bg-gray-800 rounded w-3/4" />
                   <div className="h-3 bg-gray-800 rounded w-1/2" />
