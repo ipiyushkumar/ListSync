@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   BarChart3, Film, BookOpen, Tv, Music, Clapperboard, Star,
-  Clock, TrendingUp, CheckCircle2, Eye, Pause, Ban, Calendar,
+  Clock, TrendingUp, CheckCircle2, Eye, Pause, Ban, Calendar, Tag,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
@@ -155,10 +155,35 @@ export default function StatsPage() {
     const totalTimeHours = Math.round(totalTimeMinutes / 60);
     const totalDays = Math.floor(totalTimeHours / 24);
 
+    // Genre analytics
+    const genreCounts: Record<string, number> = {};
+    const genreByCategory: Record<string, Record<string, number>> = {};
+    const genreAvgRating: Record<string, { sum: number; count: number }> = {};
+    for (const item of items) {
+      if (!item.genres) continue;
+      const genres = item.genres.split(',').map((g: string) => g.trim()).filter(Boolean);
+      for (const genre of genres) {
+        genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+        if (!genreByCategory[genre]) genreByCategory[genre] = {};
+        genreByCategory[genre][item.category] = (genreByCategory[genre][item.category] || 0) + 1;
+        if (item.rating && item.rating > 0) {
+          if (!genreAvgRating[genre]) genreAvgRating[genre] = { sum: 0, count: 0 };
+          genreAvgRating[genre].sum += item.rating;
+          genreAvgRating[genre].count++;
+        }
+      }
+    }
+    const topGenres = Object.entries(genreCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 15);
+    const maxGenreCount = topGenres.length > 0 ? topGenres[0][1] : 1;
+    const totalGenres = Object.keys(genreCounts).length;
+
     return {
       total, byCategory, byStatus, totalEpisodesWatched, estimatedHours,
       completionRate, avgRating, ratingBuckets, topRated, recentAdded, categoryProgress,
       timeBreakdown, totalTimeHours, totalDays,
+      genreCounts, topGenres, maxGenreCount, totalGenres, genreByCategory, genreAvgRating,
     };
   }, [items]);
 
@@ -273,6 +298,87 @@ export default function StatsPage() {
           })}
         </div>
       </div>
+
+      {/* ── Genre Analytics ── */}
+      {stats.topGenres.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Top Genres Bar Chart */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Top Genres</h2>
+              <span className="text-xs text-gray-600">{stats.totalGenres} unique genres</span>
+            </div>
+            <div className="space-y-2.5">
+              {stats.topGenres.map(([genre, count]) => {
+                const pct = (count / stats.maxGenreCount) * 100;
+                const avgR = stats.genreAvgRating[genre];
+                const avgRating = avgR && avgR.count > 0 ? (avgR.sum / avgR.count).toFixed(1) : null;
+                return (
+                  <div key={genre}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="flex items-center gap-2 text-gray-300">
+                        <Tag className="w-3.5 h-3.5 text-accent" />
+                        {genre}
+                      </span>
+                      <span className="flex items-center gap-2 text-gray-500">
+                        {avgRating && <span className="text-yellow-400/70 text-xs">★ {avgRating}</span>}
+                        <span>{count}</span>
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Genre by Category Heatmap */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Genre × Category</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr>
+                    <th className="text-left text-gray-500 font-medium pb-2 pr-3">Genre</th>
+                    {Object.keys(CATEGORY_META).map((cat) => (
+                      <th key={cat} className="text-center text-gray-500 font-medium pb-2 px-1">{CATEGORY_META[cat].label.slice(0, 3)}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.topGenres.slice(0, 10).map(([genre]) => (
+                    <tr key={genre} className="border-t border-gray-800/50">
+                      <td className="py-1.5 pr-3 text-gray-300 truncate max-w-[100px]">{genre}</td>
+                      {Object.keys(CATEGORY_META).map((cat) => {
+                        const val = stats.genreByCategory[genre]?.[cat] || 0;
+                        const maxForGenre = Math.max(...Object.values(stats.genreByCategory[genre] || {}), 1);
+                        const intensity = val > 0 ? 0.2 + (val / maxForGenre) * 0.8 : 0;
+                        return (
+                          <td key={cat} className="text-center py-1.5 px-1">
+                            {val > 0 ? (
+                              <span
+                                className="inline-block w-7 h-5 rounded text-[10px] leading-5 font-medium text-white"
+                                style={{ backgroundColor: `${CATEGORY_META[cat].color}${Math.round(intensity * 200).toString(16).padStart(2, '0')}` }}
+                                title={`${genre} × ${CATEGORY_META[cat].label}: ${val}`}
+                              >
+                                {val}
+                              </span>
+                            ) : (
+                              <span className="inline-block w-7 h-5" />
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Category Progress ── */}
       {Object.keys(stats.categoryProgress).length > 0 && (
