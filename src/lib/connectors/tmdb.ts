@@ -43,7 +43,7 @@ export class TMDBConnector implements Connector {
               rating: m.vote_average,
               genres: [],
               externalId: String(m.id),
-              externalSource: 'tmdb-movie',
+              externalSource: 'tmdb',
             });
           }
         }
@@ -66,11 +66,11 @@ export class TMDBConnector implements Connector {
               posterUrl: t.poster_path
                 ? `https://image.tmdb.org/t/p/w500${t.poster_path}`
                 : undefined,
-              totalEpisodes: t.episode_count || 0,
+              totalEpisodes: t.number_of_episodes || 0,
               rating: t.vote_average,
               genres: [],
               externalId: String(t.id),
-              externalSource: 'tmdb-tv',
+              externalSource: 'tmdb',
             });
           }
         }

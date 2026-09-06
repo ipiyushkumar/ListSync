@@ -22,7 +22,7 @@ export class AniListConnector implements Connector {
         Media(search: $search, type: $type) {
           id
           title { romaji english }
-          description(asHtml: false)
+          description
           chapters
           episodes
           status
