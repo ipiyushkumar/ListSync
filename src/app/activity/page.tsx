@@ -40,17 +40,6 @@ const ACTION_META: Record<string, { icon: typeof Play; color: string; bgColor: s
   listened: { icon: Music, color: 'text-pink-400', bgColor: 'bg-pink-500/10', label: 'Listened' },
 };
 
-function getCategoryRoute(category: string): string {
-  const map: Record<string, string> = {
-    anime: '/anime',
-    manhwa: '/manhwa',
-    movie: '/movies',
-    tv: '/tv',
-    music: '/music',
-  };
-  return map[category] || '/';
-}
-
 function relativeTime(timestamp: string): string {
   const now = Date.now();
   const then = new Date(timestamp).getTime();
@@ -243,7 +232,7 @@ export default function ActivityPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <Link
-                                href={getCategoryRoute(activity.media.category)}
+                                href={`/media/${activity.media.id}`}
                                 className="text-sm font-medium text-white hover:text-purple-400 transition-colors truncate"
                               >
                                 {activity.media.title}

@@ -199,7 +199,7 @@ export default function SearchPage() {
           externalId: String(item.id),
           externalSource: item.source || item.category,
           genres: item.genres || [],
-          platforms: (item.platforms || []).map((p: Platform) => p.name).join(', ') || '',
+          platforms: (item.platforms || []).map((p: Platform) => p.name),
           airStatus: item.airStatus || null,
           rating: item.rating || item.averageScore || item.score || item.vote_average || 0,
         }),
@@ -430,7 +430,7 @@ export default function SearchPage() {
 
                 {/* Info */}
                 <div className="p-3">
-                  <h3 className="text-sm font-medium text-white truncate leading-snug">{title}</h3>
+                  <h3 className="text-sm font-medium text-white leading-snug">{title}</h3>
                   {item.airStatus && (() => {
                     const colors = getAirStatusColor(item.airStatus);
                     return colors ? (
