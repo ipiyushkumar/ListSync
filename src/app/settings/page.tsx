@@ -244,6 +244,26 @@ export default function SettingsPage() {
     }
   };
 
+  /* ── Export as CSV ─────────────────────────────────────────── */
+  const handleExportCsv = async () => {
+    try {
+      const res = await fetch('/api/export?format=csv');
+      if (!res.ok) throw new Error('CSV export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `listsync-export-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('success', 'CSV exported successfully');
+    } catch {
+      showToast('error', 'Failed to export CSV');
+    }
+  };
+
   /* ── Import data ─────────────────────────────────────────── */
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -479,18 +499,33 @@ export default function SettingsPage() {
       {/* ────────── 5. Data Management ────────── */}
       <SectionCard icon={Download} title="Data Management" description="Export and import your media data">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-3 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-600 rounded-xl transition-all group"
-          >
-            <div className="p-2 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
-              <Download className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div className="text-left">
-              <div className="text-sm font-medium text-white">Export Data</div>
-              <div className="text-xs text-gray-500">Download JSON backup</div>
-            </div>
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-3 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-600 rounded-xl transition-all group"
+            >
+              <div className="p-2 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
+                <Download className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-medium text-white">Export JSON</div>
+                <div className="text-xs text-gray-500">Full data backup</div>
+              </div>
+            </button>
+
+            <button
+              onClick={handleExportCsv}
+              className="flex items-center gap-3 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-600 rounded-xl transition-all group"
+            >
+              <div className="p-2 bg-cyan-500/10 rounded-lg group-hover:bg-cyan-500/20 transition-colors">
+                <Download className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-medium text-white">Export CSV</div>
+                <div className="text-xs text-gray-500">Spreadsheet format</div>
+              </div>
+            </button>
+          </div>
 
           <div>
             <input
