@@ -121,6 +121,7 @@ export default function SearchPage() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [showRecent, setShowRecent] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
 
   // Load recent searches from localStorage on mount
   useEffect(() => {
@@ -143,6 +144,34 @@ export default function SearchPage() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [query]);
+
+  // Keyboard navigation for search results (ArrowDown, ArrowUp, Enter)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (results.length === 0) return;
+      if (document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setFocusedIndex(prev => Math.min(prev + 1, results.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedIndex(prev => Math.max(prev - 1, 0));
+      } else if (e.key === 'Enter' && focusedIndex >= 0 && focusedIndex < results.length) {
+        e.preventDefault();
+        const item = results[focusedIndex];
+        if (!isInLibrary(item) && !addedIds.has(`${item.id}-${item.category}`)) {
+          addToLibrary(item);
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [results, focusedIndex]);
+
+  // Reset focused index when results change
+  useEffect(() => {
+    setFocusedIndex(-1);
+  }, [results]);
 
   // Fetch library to detect duplicates
   useEffect(() => {
@@ -393,7 +422,7 @@ export default function SearchPage() {
       {/* Results grid */}
       {!loading && results.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {results.map((item) => {
+          {results.map((item, idx) => {
             const title = item.title || item.name || 'Unknown';
             const image = item.coverImage || item.image || (item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : null);
             const score = item.rating || item.averageScore || item.score || item.vote_average;
@@ -406,7 +435,9 @@ export default function SearchPage() {
             return (
               <div
                 key={`${item.id}-${item.category}`}
-                className="group bg-gray-900/60 rounded-lg border border-gray-800/50 overflow-hidden hover:border-gray-700/50 transition-all duration-200"
+                className={`group bg-gray-900/60 rounded-lg border overflow-hidden transition-all duration-200 ${
+                  focusedIndex === idx ? 'border-accent/50 ring-1 ring-accent/30' : 'border-gray-800/50 hover:border-gray-700/50'
+                }`}
               >
                 {/* Poster */}
                 <div className="relative aspect-[3/4] bg-gray-800/30 overflow-hidden">
