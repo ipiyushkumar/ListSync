@@ -486,6 +486,20 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
                   item={item}
                   onClick={() => !selectMode && setSelectedMedia(item)}
                   onIncrement={() => handleIncrement(item)}
+                  onStatusChange={async (newStatus: string) => {
+                    try {
+                      const res = await fetch(`/api/media/${item.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: newStatus }),
+                      });
+                      if (res.ok) {
+                        const updated = await res.json();
+                        handleUpdate(updated);
+                        setToast({ message: `"${item.title}" → ${newStatus}`, type: 'success' });
+                      }
+                    } catch { /* silent */ }
+                  }}
                   incrementLabel={incrementLabel}
                   aspectRatio={aspectRatio}
                 />

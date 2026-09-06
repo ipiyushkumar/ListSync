@@ -1,6 +1,7 @@
 'use client';
 
-import { Star } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Star, ChevronDown, Check } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
 import { parseGenres } from '@/lib/utils';
@@ -27,10 +28,19 @@ export interface Media {
   updatedAt?: string;
 }
 
+const STATUS_OPTIONS = [
+  { value: 'watching', label: 'Watching' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'planned', label: 'Planned' },
+  { value: 'on_hold', label: 'On Hold' },
+  { value: 'dropped', label: 'Dropped' },
+];
+
 export default function MediaGridCard({
   item,
   onClick,
   onIncrement,
+  onStatusChange,
   incrementLabel = '+1',
   incrementDisabled,
   aspectRatio = '3/4',
@@ -38,12 +48,24 @@ export default function MediaGridCard({
   item: Media;
   onClick: () => void;
   onIncrement: () => void;
+  onStatusChange?: (newStatus: string) => void;
   incrementLabel?: string;
   incrementDisabled?: boolean;
   aspectRatio?: string;
 }) {
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const genres = parseGenres(item.genres);
   const isComplete = incrementDisabled ?? (item.totalEpisodes != null && item.currentEp >= item.totalEpisodes);
+
+  useEffect(() => {
+    if (!showStatusMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowStatusMenu(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showStatusMenu]);
 
   return (
     <div
@@ -70,16 +92,46 @@ export default function MediaGridCard({
 
         {/* Quick action on hover */}
         <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (!isComplete) onIncrement();
-            }}
-            disabled={isComplete}
-            className="w-full py-1.5 bg-accent hover:bg-accent-hover disabled:bg-gray-700 disabled:text-gray-500 text-white text-xs font-medium rounded-lg transition-colors"
-          >
-            {isComplete ? 'Complete' : incrementLabel}
-          </button>
+          <div className="flex gap-2">
+            {onStatusChange && (
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowStatusMenu(!showStatusMenu); }}
+                  className="flex items-center gap-1 py-1.5 px-2.5 bg-gray-800/90 hover:bg-gray-700/90 text-white text-xs font-medium rounded-lg transition-colors backdrop-blur-sm"
+                >
+                  Status <ChevronDown className="w-3 h-3" />
+                </button>
+                {showStatusMenu && (
+                  <div className="absolute bottom-full mb-1 left-0 w-36 bg-gray-900 border border-gray-700 rounded-lg shadow-xl py-1 z-30">
+                    {STATUS_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (opt.value !== item.status) onStatusChange(opt.value);
+                          setShowStatusMenu(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-800 transition-colors"
+                      >
+                        {opt.value === item.status && <Check className="w-3 h-3 text-accent" />}
+                        <span className={opt.value === item.status ? 'text-accent font-medium' : ''}>{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isComplete) onIncrement();
+              }}
+              disabled={isComplete}
+              className="flex-1 py-1.5 bg-accent hover:bg-accent-hover disabled:bg-gray-700 disabled:text-gray-500 text-white text-xs font-medium rounded-lg transition-colors"
+            >
+              {isComplete ? 'Complete' : incrementLabel}
+            </button>
+          </div>
         </div>
 
         {/* Status badge */}
