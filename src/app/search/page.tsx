@@ -188,7 +188,7 @@ export default function SearchPage() {
   handleSearchRef.current = handleSearch;
   useEffect(() => {
     if (searched && query.trim() && !loading) {
-      handleSearchRef.current();
+      handleSearchRef.current?.();
     }
   }, [filter, searched, query, loading]);
 
