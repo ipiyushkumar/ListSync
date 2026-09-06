@@ -4,31 +4,32 @@
 
 ## Features
 
-- 📊 Dashboard with stats and progress tracking
-- 🔍 Search across Jikan (anime), AniList (manhwa), TMDB (movies/TV)
-- 📺 Category-specific views with filtering
-- ⭐ Rating and status management
-- 🔌 BYOI (Bring Your Own Integration) connector architecture
-- 🌐 Chrome extension for auto-detection of streaming sites
-- 🤖 MCP server for AI assistant integration
-- 🎨 Modern dark theme with purple accents
+- Dashboard with stats and progress tracking
+- Search across AniList (anime/manhwa), Jikan (anime fallback), TMDB (movies/TV)
+- Category-specific views with filtering and sorting
+- Rating and status management
+- BYOI (Bring Your Own Integration) connector architecture
+- Chrome extension for auto-detection of streaming sites
+- MCP server for AI assistant integration (Claude Desktop, Cursor)
+- Modern dark theme with purple accents
 
 ## Tech Stack
 
-- **Frontend**: Next.js 16, React 19, Tailwind CSS v4, Redux Toolkit
+- **Frontend**: Next.js 16, React 19, Tailwind CSS v4
 - **Backend**: Next.js API Routes, Prisma ORM
 - **Database**: SQLite
+- **State**: Zustand
 - **Icons**: Lucide React
 
 ## Getting Started
 
 ```bash
 # Clone
-git clone https://github.com/piyushdev2026/ListSync.git
+git clone https://github.com/ipiyushkumar/ListSync.git
 cd ListSync
 
 # Install (uses pnpm)
-pnpm install
+pnpm install --config.onlyBuiltDependencies='["@prisma/client","@prisma/engines","prisma"]'
 
 # Generate Prisma client
 npx prisma generate
@@ -40,33 +41,22 @@ npx prisma db push
 pnpm dev
 ```
 
-Visit http://localhost:3000
-
-## Production
-
-```bash
-# Build
-pnpm build
-
-# Start
-pnpm start -- -p 3085
-```
+Visit http://localhost:3085
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | SQLite connection string |
-| `TMDB_API_KEY` | No | TMDB API key for movie/TV search |
-| `ANILIST_API_KEY` | No | AniList API key for higher rate limits |
+| `TMDB_API_KEY` | No | TMDB API key for movie/TV search (set in Settings page) |
+
+AniList and Jikan APIs work without API keys.
 
 ## Chrome Extension
 
 The extension auto-detects what you're watching on:
 - Netflix
 - Crunchyroll
-- YouTube
-- Spotify
+- YouTube / YouTube Music
 - MyAnimeList
 - AniList
 
@@ -74,7 +64,7 @@ Load `src/extension/` as an unpacked extension in Chrome.
 
 ## MCP Server
 
-Integrate with AI assistants:
+Integrate with AI assistants (Claude Desktop, Cursor):
 
 ```json
 {
@@ -95,13 +85,11 @@ ListSync/
 ├── src/
 │   ├── app/          # Next.js pages and API routes
 │   ├── components/   # Reusable UI components
-│   ├── lib/          # Utilities and connectors
-│   │   └── connectors/  # BYOI connector implementations
+│   │   └── media/    # Media-specific components
+│   ├── lib/          # Utilities, Prisma client, store
 │   ├── mcp/          # MCP server
-│   ├── store/        # Redux store
-│   ├── types/        # TypeScript types
 │   └── extension/    # Chrome extension
-├── scripts/          # Import and utility scripts
+├── scripts/          # Utility scripts
 └── public/           # Static assets
 ```
 
@@ -110,15 +98,17 @@ ListSync/
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/media` | List media (filter by category, status) |
-| POST | `/api/media` | Add new media |
+| POST | `/api/media` | Add new media (upsert by externalId) |
 | GET | `/api/media/[id]` | Get media details |
 | PUT | `/api/media/[id]` | Update media |
 | DELETE | `/api/media/[id]` | Delete media |
-| GET | `/api/search` | Search external APIs |
+| GET | `/api/search` | Search external APIs (AniList, Jikan, TMDB) |
 | GET | `/api/stats` | Get library statistics |
 | GET | `/api/settings` | Get settings |
 | POST | `/api/settings` | Update settings |
 | GET | `/api/connectors` | List available connectors |
+| POST | `/api/connectors` | Toggle connector state |
+| GET | `/api/activity` | Activity log |
 
 ## License
 
