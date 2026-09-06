@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, string> = {};
     if (category) where.category = category;
-    if (status) where.status = status;
+    if (status) where.status = status === 'on-hold' ? 'on_hold' : status;
 
     const media = await prisma.media.findMany({
       where,
