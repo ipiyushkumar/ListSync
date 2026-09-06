@@ -62,7 +62,7 @@ server.tool(
   'Get the user\'s watchlist, optionally filtered by category or status',
   {
     category: z.enum(['anime', 'manhwa', 'movie', 'tv', 'music']).optional().describe('Filter by category'),
-    status: z.enum(['watching', 'completed', 'dropped', 'planned', 'on_hold']).optional().describe('Filter by status'),
+    status: z.enum(['watching', 'completed', 'dropped', 'planned', 'on_hold', 'on-hold']).optional().describe('Filter by status'),
     limit: z.number().optional().describe('Max items to return (default 50)'),
   },
   async ({ category, status, limit }) => {
@@ -95,7 +95,7 @@ server.tool(
   {
     title: z.string().describe('Media title'),
     category: z.enum(['anime', 'manhwa', 'movie', 'tv', 'music']).describe('Media category'),
-    status: z.enum(['watching', 'completed', 'dropped', 'planned', 'on_hold']).default('planned'),
+    status: z.enum(['watching', 'completed', 'dropped', 'planned', 'on_hold', 'on-hold']).default('planned'),
     description: z.string().optional(),
     posterUrl: z.string().optional(),
     totalEpisodes: z.number().optional(),
@@ -120,7 +120,7 @@ server.tool(
   {
     id: z.string().describe('Media item ID'),
     currentEp: z.number().describe('Current episode/chapter number'),
-    status: z.enum(['watching', 'completed', 'dropped', 'planned', 'on_hold']).optional(),
+    status: z.enum(['watching', 'completed', 'dropped', 'planned', 'on_hold', 'on-hold']).optional(),
   },
   async ({ id, currentEp, status }) => {
     const body: Record<string, unknown> = { currentEp };
@@ -139,7 +139,7 @@ server.tool(
   'Change the status of a media item',
   {
     id: z.string().describe('Media item ID'),
-    status: z.enum(['watching', 'completed', 'dropped', 'planned', 'on_hold']).describe('New status'),
+    status: z.enum(['watching', 'completed', 'dropped', 'planned', 'on_hold', 'on-hold']).describe('New status'),
   },
   async ({ id, status }) => {
     const result = await apiCall(`/api/media/${id}`, {
