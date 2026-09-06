@@ -97,27 +97,10 @@ export default function SearchPage() {
   }, []);
 
   const isInLibrary = useCallback((item: SearchResult) => {
-    const searchTitle = (item.title || item.name || '').toLowerCase().trim();
     const searchId = String(item.id);
     const searchSource = item.source || '';
-
-    return library.some(e => {
-      // Match by external ID + source (most reliable)
-      if (e.externalId && e.externalSource && searchSource && 
-          e.externalId === searchId && e.externalSource === searchSource) {
-        return true;
-      }
-      // Fuzzy title match: one contains the other (for mismatched titles)
-      if (e.category === item.category) {
-        const libTitle = e.title.toLowerCase().trim();
-        if (libTitle === searchTitle) return true;
-        if (libTitle.includes(searchTitle) || searchTitle.includes(libTitle)) return true;
-        // Check if a shared key phrase matches (e.g. "re:zero" in both)
-        const sharedWords = searchTitle.split(/\s+/).filter(w => w.length > 3 && libTitle.includes(w));
-        if (sharedWords.length >= 2) return true;
-      }
-      return false;
-    });
+    if (!searchId || !searchSource) return false;
+    return library.some(e => e.externalId === searchId && e.externalSource === searchSource);
   }, [library]);
 
   const handleSearch = useCallback(async () => {
@@ -163,7 +146,10 @@ export default function SearchPage() {
         }),
       });
       if (res.ok) {
-        const newEntry = { id: String(item.id), title, category: item.category };
+        const newEntry = {
+          id: String(item.id), title, category: item.category,
+          externalId: String(item.id), externalSource: item.source || '',
+        };
         setLibrary(prev => [...prev, newEntry]);
         setAddedIds(prev => new Set(prev).add(`${item.id}-${item.category}`));
         setToast({ message: `Added "${title}" to library`, type: 'success' });
