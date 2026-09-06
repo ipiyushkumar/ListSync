@@ -106,7 +106,7 @@ export default function MediaCard({ media, onUpdate, onDelete }: MediaCardProps)
 
         {/* Info */}
         <div className="p-3 space-y-2">
-          <h3 className="font-semibold text-white text-sm truncate" title={media.title}>
+          <h3 className="font-semibold text-white text-sm leading-snug" title={media.title}>
             {media.title}
           </h3>
 
@@ -131,7 +131,7 @@ export default function MediaCard({ media, onUpdate, onDelete }: MediaCardProps)
             </div>
           )}
 
-          <p className="text-xs text-gray-500 truncate">{media.category}</p>
+          <p className="text-xs text-gray-500">{media.category}</p>
         </div>
       </div>
 

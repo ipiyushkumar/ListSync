@@ -63,7 +63,10 @@ async function main() {
 
   console.log(`Found ${items.length} anime with externalId needing descriptions`);
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath: '/home/piyush-kumar/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome'
+  });
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   });

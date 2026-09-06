@@ -104,9 +104,9 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-white truncate">{media.title}</h2>
+            <h2 className="text-xl font-bold text-white leading-snug">{media.title}</h2>
             {media.originalTitle && (
-              <p className="text-sm text-gray-400 truncate">{media.originalTitle}</p>
+              <p className="text-sm text-gray-400 leading-snug">{media.originalTitle}</p>
             )}
             <p className="text-xs text-gray-500 mt-1">{media.category}</p>
           </div>
