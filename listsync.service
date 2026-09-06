@@ -1,0 +1,17 @@
+[Unit]
+Description=ListSync Media Tracker
+After=network.target
+
+[Service]
+Type=simple
+User=piyush-kumar
+Group=piyush-kumar
+WorkingDirectory=/home/piyush-kumar/Desktop/obsidian/personal/ListSync
+ExecStart=/home/piyush-kumar/.nvm/versions/node/v24.14.0/bin/npx next start -p 3085
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=3085
+
+[Install]
+WantedBy=multi-user.target

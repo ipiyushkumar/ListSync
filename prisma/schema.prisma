@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Media {
+  id            String   @id @default(cuid())
+  title         String
+  originalTitle String?
+  description   String?
+  category      String   // anime, manhwa, movie, tv, music
+  posterUrl     String?
+  releaseDate   String?
+  totalEpisodes Int?
+  currentEp     Int      @default(0)
+  rating        Float?
+  status        String   @default("planned") // watching, completed, dropped, planned, on_hold
+  genres        String?  // JSON array stored as string
+  platforms     String?  // JSON array stored as string
+  externalId    String?  // ID from external API (MAL, AniList, TMDB, etc.)
+  externalSource String? // jikan, anilist, tmdb, lastfm, spotify
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  activities    Activity[]
+
+  @@index([category])
+  @@index([status])
+  @@index([externalId])
+}
+
+model Connector {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // watch, listen, read
+  authType    String   // oauth, api_key, cookie
+  config      String?  // JSON config
+  isActive    Boolean  @default(true)
+  lastSync    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  mediaId     String
+  media       Media    @relation(fields: [mediaId], references: [id])
+  action      String   // started, paused, completed, episode_watched
+  episode     Int?
+  timestamp   DateTime @default(now())
+  source      String?  // manual, extension, connector
+  metadata    String?  // JSON metadata
+
+  @@index([mediaId])
+  @@index([timestamp])
+}
+
+model AiKey {
+  id          String   @id @default(cuid())
+  provider    String   // openai, anthropic, google, deepseek, ollama
+  apiKey      String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

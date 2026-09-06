@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg)"/>
+  <!-- Sync arrows (two circular arrows) -->
+  <g transform="translate(32,30)">
+    <!-- Outer ring -->
+    <circle cx="0" cy="0" r="16" fill="none" stroke="url(#accent)" stroke-width="2.5" opacity="0.3"/>
+    <!-- Top arrow (right) -->
+    <path d="M-8,-10 A12,12 0 0,1 8,-10" fill="none" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
+    <polygon points="8,-10 12,-6 6,-6" fill="white"/>
+    <!-- Bottom arrow (left) -->
+    <path d="M8,10 A12,12 0 0,1 -8,10" fill="none" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
+    <polygon points="-8,10 -12,6 -6,6" fill="white"/>
+  </g>
+  <!-- Center play dot -->
+  <circle cx="32" cy="30" r="3" fill="white" opacity="0.9"/>
+  <!-- Bottom bar (media progress) -->
+  <rect x="12" y="50" width="40" height="3" rx="1.5" fill="white" opacity="0.2"/>
+  <rect x="12" y="50" width="28" height="3" rx="1.5" fill="white" opacity="0.7"/>
+</svg>
