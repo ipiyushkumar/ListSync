@@ -106,6 +106,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ── Open dashboard ──────────────────────────────────────────────────────
+
+  if (btnDashboard) {
+    btnDashboard.addEventListener('click', () => {
+      chrome.tabs.create({ url: 'http://localhost:3085' });
+    });
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────
 
   loadState();

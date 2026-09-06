@@ -10,6 +10,9 @@
     "alarms",
     "scripting"
   ],
+  "host_permissions": [
+    "http://localhost:3085/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
