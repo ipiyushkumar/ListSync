@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Key, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, X } from 'lucide-react';
+import { Key, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, X, Download, Upload } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /* ─────────────────────────── Types ─────────────────────────── */
@@ -149,6 +149,8 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; errors: string[] } | null>(null);
   const [toast, setToast] = useState<{ kind: ToastKind; message: string } | null>(null);
 
   const showToast = useCallback((kind: ToastKind, message: string) => setToast({ kind, message }), []);
@@ -219,6 +221,56 @@ export default function SettingsPage() {
       showToast('error', 'Could not reach TMDB API');
     } finally {
       setTesting(false);
+    }
+  };
+
+  /* ── Export data ─────────────────────────────────────────── */
+  const handleExport = async () => {
+    try {
+      const res = await fetch('/api/export');
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `listsync-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('success', 'Data exported successfully');
+    } catch {
+      showToast('error', 'Failed to export data');
+    }
+  };
+
+  /* ── Import data ─────────────────────────────────────────── */
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const text = await file.text();
+      const media = JSON.parse(text);
+      const res = await fetch('/api/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ media }),
+      });
+      const result = await res.json();
+      setImportResult(result);
+      if (result.errors.length === 0) {
+        showToast('success', `Imported ${result.imported} items`);
+      } else {
+        showToast('info', `Imported ${result.imported}, ${result.skipped} skipped`);
+      }
+    } catch {
+      setImportResult({ imported: 0, skipped: 0, errors: ['Invalid JSON file'] });
+      showToast('error', 'Failed to import data');
+    } finally {
+      setImporting(false);
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -422,6 +474,64 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+      </SectionCard>
+
+      {/* ────────── 5. Data Management ────────── */}
+      <SectionCard icon={Download} title="Data Management" description="Export and import your media data">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-3 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-600 rounded-xl transition-all group"
+          >
+            <div className="p-2 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
+              <Download className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div className="text-left">
+              <div className="text-sm font-medium text-white">Export Data</div>
+              <div className="text-xs text-gray-500">Download JSON backup</div>
+            </div>
+          </button>
+
+          <div>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+              id="import-file"
+            />
+            <label
+              htmlFor="import-file"
+              className={`flex items-center gap-3 p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-gray-600 rounded-xl transition-all group cursor-pointer ${importing ? 'opacity-50 pointer-events-none' : ''}`}
+            >
+              <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                <Upload className="w-5 h-5 text-blue-400" />
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-medium text-white">{importing ? 'Importing...' : 'Import Data'}</div>
+                <div className="text-xs text-gray-500">Restore from JSON backup</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {importResult && (
+          <div className={`p-4 rounded-xl border ${importResult.errors.length > 0 ? 'bg-amber-500/5 border-amber-500/20' : 'bg-emerald-500/5 border-emerald-500/20'}`}>
+            <div className="text-sm font-medium text-white">
+              {importResult.imported} imported, {importResult.skipped} skipped
+            </div>
+            {importResult.errors.length > 0 && (
+              <div className="mt-2 text-xs text-amber-400/80 space-y-1">
+                {importResult.errors.slice(0, 3).map((err, i) => (
+                  <div key={i}>• {err}</div>
+                ))}
+                {importResult.errors.length > 3 && (
+                  <div>• ...and {importResult.errors.length - 3} more errors</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </SectionCard>
 
       {/* Bottom spacer */}

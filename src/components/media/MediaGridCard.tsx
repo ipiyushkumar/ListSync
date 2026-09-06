@@ -42,6 +42,7 @@ export default function MediaGridCard({
   onClick,
   onIncrement,
   onStatusChange,
+  onFavoriteToggle,
   incrementLabel = '+1',
   incrementDisabled,
   aspectRatio = '3/4',
