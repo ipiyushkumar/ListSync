@@ -33,6 +33,8 @@ interface LibraryEntry {
   id: string;
   title: string;
   category: string;
+  externalId?: string;
+  externalSource?: string;
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: typeof Film; color: string; bg: string }> = {
@@ -83,16 +85,39 @@ export default function SearchPage() {
       .then(r => r.json())
       .then(data => {
         const items = Array.isArray(data) ? data : data.items || [];
-        setLibrary(items.map((m: any) => ({ id: m.id, title: m.title, category: m.category })));
+        setLibrary(items.map((m: any) => ({
+          id: m.id,
+          title: m.title,
+          category: m.category,
+          externalId: m.externalId,
+          externalSource: m.externalSource,
+        })));
       })
       .catch(() => {});
   }, []);
 
   const isInLibrary = useCallback((item: SearchResult) => {
-    const title = (item.title || item.name || '').toLowerCase().trim();
-    return library.some(
-      e => e.title.toLowerCase().trim() === title && e.category === item.category
-    );
+    const searchTitle = (item.title || item.name || '').toLowerCase().trim();
+    const searchId = String(item.id);
+    const searchSource = item.source || '';
+
+    return library.some(e => {
+      // Match by external ID + source (most reliable)
+      if (e.externalId && e.externalSource && searchSource && 
+          e.externalId === searchId && e.externalSource === searchSource) {
+        return true;
+      }
+      // Fuzzy title match: one contains the other (for mismatched titles)
+      if (e.category === item.category) {
+        const libTitle = e.title.toLowerCase().trim();
+        if (libTitle === searchTitle) return true;
+        if (libTitle.includes(searchTitle) || searchTitle.includes(libTitle)) return true;
+        // Check if a shared key phrase matches (e.g. "re:zero" in both)
+        const sharedWords = searchTitle.split(/\s+/).filter(w => w.length > 3 && libTitle.includes(w));
+        if (sharedWords.length >= 2) return true;
+      }
+      return false;
+    });
   }, [library]);
 
   const handleSearch = useCallback(async () => {
@@ -315,6 +340,14 @@ export default function SearchPage() {
                       <Star className="w-2.5 h-2.5 text-amber-400 fill-current" />
                       {normalizeScore(score)}
                     </span>
+                  )}
+
+                  {/* In Library indicator — always visible */}
+                  {inLibrary && (
+                    <div className="absolute top-2 right-2 mt-6 px-1.5 py-0.5 rounded bg-emerald-500/90 text-[10px] font-medium text-white flex items-center gap-0.5">
+                      <Check className="w-2.5 h-2.5" />
+                      In Library
+                    </div>
                   )}
 
                   {/* Hover overlay with action */}
