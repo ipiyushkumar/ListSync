@@ -125,6 +125,28 @@ async function enrichTMDBTV(results: SearchResult[], key: string): Promise<Searc
   return enriched;
 }
 
+// Jikan (MAL) - REST, no key needed, fallback when AniList is down
+async function searchJikanAnime(query: string): Promise<SearchResult[]> {
+  try {
+    const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=5`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.data || []).map((a: Record<string, unknown>) => ({
+      id: a.mal_id,
+      title: (a.title as string) || '',
+      description: stripHtml((a.synopsis as string) || ''),
+      category: 'anime',
+      coverImage: (a.images as Record<string, Record<string, string>>)?.jpg?.large_image_url || (a.images as Record<string, Record<string, string>>)?.jpg?.image_url,
+      rating: a.score as number,
+      totalEpisodes: a.episodes as number,
+      genres: ((a.genres as { name: string }[]) || []).map((g) => g.name),
+      releaseDate: (a.aired as Record<string, string>)?.string || undefined,
+      source: 'jikan',
+      airStatus: a.airing ? 'Airing' : (a.status as string === 'Finished Airing' ? 'Ended' : a.status as string) || '',
+    }));
+  } catch { return []; }
+}
+
 // AniList Anime - GraphQL, no key needed
 async function searchAniListAnime(query: string): Promise<SearchResult[]> {
   try {
@@ -273,8 +295,13 @@ export async function GET(request: NextRequest) {
 
   const searches: Promise<SearchResult[]>[] = [];
   if (!category || category === 'anime') {
-    // AniList primary (reliable), Jikan fallback (MAL often down)
-    searches.push(searchAniListAnime(query));
+    // AniList primary, Jikan fallback when AniList is down
+    searches.push(
+      searchAniListAnime(query).then(async (results) => {
+        if (results.length === 0) return searchJikanAnime(query);
+        return results;
+      })
+    );
   }
   if (!category || category === 'manhwa') searches.push(searchAniList(query));
   if (!category || category === 'movie' || category === 'tv') searches.push(searchTMDB(query, category));
