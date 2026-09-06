@@ -61,6 +61,9 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<string>('all');
+
+  // Normalize on-hold (hyphen) to on_hold (underscore) to match DB canonical form
+  const normalizeStatus = (s: string) => s === 'on-hold' ? 'on_hold' : s;
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -88,7 +91,13 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   const stats = useMemo(() => {
     const counts: Record<string, number> = {};
     statusFilters.forEach((s) => { counts[s] = 0; });
-    media.forEach((m) => { if (counts[m.status] !== undefined) counts[m.status]++; });
+    media.forEach((m) => {
+      const key = normalizeStatus(m.status);
+      if (counts[key] !== undefined) counts[key]++;
+      // Also count under original filter key if normalized form differs
+      const origKey = statusFilters.find((f) => normalizeStatus(f as string) === key);
+      if (origKey && counts[origKey] !== undefined) counts[origKey]++;
+    });
     return { counts, total: media.length };
   }, [media, statusFilters]);
 
@@ -105,9 +114,10 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   const displayed = useMemo(() => {
     let items = [...media];
 
-    // Status filter (client-side)
+    // Status filter (client-side) — normalize on-hold to on_hold for DB match
     if (activeFilter !== 'all') {
-      items = items.filter((m) => m.status === activeFilter);
+      const filterStatus = normalizeStatus(activeFilter);
+      items = items.filter((m) => normalizeStatus(m.status) === filterStatus);
     }
 
     if (activeGenre) {

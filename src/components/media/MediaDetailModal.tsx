@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, ChevronDown, ChevronUp, Trash2, ExternalLink } from 'lucide-react';
+import { X, ChevronDown, ChevronUp, Trash2, ExternalLink, Star } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 import { parseGenres } from '@/lib/utils';
 import type { Media } from './MediaGridCard';
@@ -52,10 +52,13 @@ export default function MediaDetailModal({
         body.status = 'completed';
         setEditStatus('completed');
       }
-      // Auto-set back to watching when decrementing from completed
+      // Auto-set back to active status when decrementing from completed
       if (media.totalEpisodes && editEp < media.totalEpisodes && editStatus === 'completed') {
-        body.status = 'watching';
-        setEditStatus('watching');
+        const revertStatus = media.category === 'manhwa' ? 'reading'
+          : media.category === 'music' ? 'listening'
+          : 'watching';
+        body.status = revertStatus;
+        setEditStatus(revertStatus);
       }
       const res = await fetch(`/api/media/${media.id}`, {
         method: 'PUT',
@@ -242,7 +245,7 @@ export default function MediaDetailModal({
             )}
             {media.rating != null && (
               <span className="flex items-center gap-1">
-                <span className="text-yellow-400">★</span> {media.rating.toFixed(1)}
+                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> {media.rating.toFixed(1)}
               </span>
             )}
             {media.externalSource && (
