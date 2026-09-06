@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Key, Link, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, Tv, Music } from 'lucide-react';
+import { Key, Link, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, Tv, Music, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /* ─────────────────────────── Types ─────────────────────────── */
@@ -41,7 +41,7 @@ const AI_PROVIDERS = [
 
 /* ──────────────────── Toast component ─────────────────────── */
 
-function Toast({ kind, message, onClose }: { kind: ToastKind; message: string; onClose: () => void }) {
+function SettingsToast({ kind, message, onClose }: { kind: ToastKind; message: string; onClose: () => void }) {
   useEffect(() => {
     const t = setTimeout(onClose, 3500);
     return () => clearTimeout(t);
@@ -52,8 +52,14 @@ function Toast({ kind, message, onClose }: { kind: ToastKind; message: string; o
     : 'bg-blue-500/10 border-blue-500/30 text-blue-400';
 
   return (
-    <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl border text-sm font-medium shadow-lg backdrop-blur-sm animate-in slide-in-from-bottom-4 ${bg}`}>
-      {message}
+    <div
+      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl border text-sm font-medium shadow-lg backdrop-blur-sm ${bg}`}
+      style={{ animation: 'toast-in 0.3s ease-out' }}
+    >
+      <span>{message}</span>
+      <button onClick={onClose} className="text-current opacity-60 hover:opacity-100 transition-opacity">
+        <X className="w-3.5 h-3.5" />
+      </button>
     </div>
   );
 }
@@ -233,7 +239,7 @@ export default function SettingsPage() {
   /* ══════════════════════ RENDER ═════════════════════════════ */
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
-      {toast && <Toast kind={toast.kind} message={toast.message} onClose={() => setToast(null)} />}
+      {toast && <SettingsToast kind={toast.kind} message={toast.message} onClose={() => setToast(null)} />}
 
       {/* Header */}
       <div className="flex items-end justify-between">
