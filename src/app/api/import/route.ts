@@ -144,7 +144,7 @@ export async function POST(request: Request) {
         existingSet.add(titleKey);
       } catch (err) {
         failed++;
-        errors.push(`${sanitized.title}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        errors.push(`${sanitized.title}: Import failed`);
       }
     }
 

@@ -89,10 +89,10 @@ export default function ExportPage() {
 
   const fetchCount = useCallback(async () => {
     try {
-      const res = await fetch('/api/export?format=json');
+      const res = await fetch('/api/stats');
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      setMediaCount(Array.isArray(data) ? data.length : 0);
+      setMediaCount(data.total ?? 0);
     } catch {
       setMediaCount(0);
     } finally {
@@ -217,7 +217,7 @@ export default function ExportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] p-8">
+    <div className="space-y-6">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div>
