@@ -86,17 +86,19 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
       <div className="relative bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl mx-4">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-800">
-          <div className="flex items-center gap-4">
-            {media.posterUrl ? (
+          <div className="relative w-16 h-24 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
+            {/* Fallback */}
+            <div className="absolute inset-0 z-0 flex items-center justify-center text-gray-600 text-xl font-bold">
+              {media.title[0]}
+            </div>
+            {/* Image */}
+            {media.posterUrl && (
               <img
                 src={media.posterUrl}
                 alt={media.title}
-                className="w-16 h-24 object-cover rounded-lg"
+                className="absolute inset-0 w-full h-full object-cover z-10"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
-            ) : (
-              <div className="w-16 h-24 bg-gray-800 rounded-lg flex items-center justify-center text-gray-600 text-xl font-bold">
-                {media.title[0]}
-              </div>
             )}
             <div>
               <h2 className="text-xl font-bold text-white">{media.title}</h2>
