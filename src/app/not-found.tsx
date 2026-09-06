@@ -21,7 +21,7 @@ export default function NotFound() {
         </Link>
         <Link
           href="/search"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-gray-900 hover:bg-gray-100 text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-500 text-sm font-medium transition-colors"
         >
           <Search className="w-4 h-4" />
           Search
