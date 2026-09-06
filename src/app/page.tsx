@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Film, BookOpen, Tv, Music, Clapperboard, Search,
   ArrowRight, Star, Clock, CheckCircle2, Eye, Pause, Ban,
@@ -81,6 +82,7 @@ function SkeletonDashboard() {
 }
 
 export default function Dashboard() {
+  const router = useRouter();
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -99,7 +101,7 @@ export default function Dashboard() {
         const tag = (e.target as HTMLElement)?.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA') return;
         e.preventDefault();
-        window.location.href = '/search';
+        router.push('/search');
       }
     };
     window.addEventListener('keydown', handler);
@@ -300,7 +302,7 @@ export default function Dashboard() {
                   return (
                     <tr
                       key={item.id}
-                      onClick={() => window.location.href = CATEGORY_LINK[item.category] || '/'}
+                      onClick={() => router.push(CATEGORY_LINK[item.category] || '/')}
                       className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors duration-200 cursor-pointer"
                     >
                       <td className="px-4 py-2.5">

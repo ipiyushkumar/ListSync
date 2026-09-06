@@ -261,12 +261,12 @@ export default function SettingsPage() {
       {/* ────────── 1. API Keys ────────── */}
       <SectionCard icon={Key} title="API Keys" description="Required keys for media metadata fetching">
         <KeyInput label="TMDB API Key" value={settings.apiKeys.tmdb} placeholder="v3 authenticated key" onChange={(v) => updateApiKey('tmdb', v)} />
-        <KeyInput label="AniList API Key" value={settings.apiKeys.anilist} placeholder="Optional — for extended anime metadata" onChange={(v) => updateApiKey('anilist', v)} />
         <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
           <p className="text-xs text-gray-500 leading-relaxed">
             API keys are stored locally in SQLite and never leave your server.
             Get a TMDB key at{' '}
             <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">themoviedb.org</a>.
+            AniList does not require an API key — anime and manhwa metadata is fetched automatically.
           </p>
         </div>
       </SectionCard>

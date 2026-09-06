@@ -314,17 +314,17 @@ export default function SearchPage() {
               >
                 {/* Poster */}
                 <div className="relative aspect-[3/4] bg-gray-800/30 overflow-hidden">
-                  {image ? (
+                  {/* Fallback icon — always rendered behind the image */}
+                  <div className="absolute inset-0 flex items-center justify-center z-0">
+                    <meta.icon className="w-8 h-8 text-gray-700" />
+                  </div>
+                  {image && (
                     <img
                       src={image}
                       alt={title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 z-10"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <meta.icon className="w-8 h-8 text-gray-700" />
-                    </div>
                   )}
 
                   {/* Category badge */}
