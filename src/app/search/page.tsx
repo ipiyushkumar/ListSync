@@ -7,6 +7,13 @@ import {
 } from 'lucide-react';
 import Toast from '@/components/Toast';
 
+interface Platform {
+  name: string;
+  logo_path: string;
+  type: 'flatrate' | 'buy' | 'rent' | 'free';
+  link: string;
+}
+
 interface SearchResult {
   id: string | number;
   title?: string;
@@ -27,6 +34,8 @@ interface SearchResult {
   releaseDate?: string;
   genres?: string[];
   source?: string;
+  airStatus?: string;
+  platforms?: Platform[];
 }
 
 interface LibraryEntry {
@@ -45,6 +54,28 @@ const CATEGORY_META: Record<string, { label: string; icon: typeof Film; color: s
 };
 
 const CATEGORIES = ['all', 'anime', 'manhwa', 'movie', 'tv'] as const;
+
+function getAirStatusColor(status?: string): { dot: string; text: string; bg: string } | null {
+  if (!status) return null;
+  switch (status.toLowerCase()) {
+    case 'airing':
+    case 'releasing':
+      return { dot: 'bg-emerald-400', text: 'text-emerald-400', bg: 'bg-emerald-500/10' };
+    case 'ended':
+    case 'finished':
+      return { dot: 'bg-gray-400', text: 'text-gray-400', bg: 'bg-gray-500/10' };
+    case 'canceled':
+    case 'cancelled':
+      return { dot: 'bg-red-400', text: 'text-red-400', bg: 'bg-red-500/10' };
+    case 'upcoming':
+    case 'not yet released':
+      return { dot: 'bg-amber-400', text: 'text-amber-400', bg: 'bg-amber-500/10' };
+    case 'hiatus':
+      return { dot: 'bg-orange-400', text: 'text-orange-400', bg: 'bg-orange-500/10' };
+    default:
+      return null;
+  }
+}
 
 function normalizeScore(score: number | undefined): string {
   if (score == null) return '';
@@ -168,7 +199,8 @@ export default function SearchPage() {
           externalId: String(item.id),
           externalSource: item.source || item.category,
           genres: item.genres || [],
-          platforms: [],
+          platforms: (item.platforms || []).map((p: Platform) => p.name).join(', ') || '',
+          airStatus: item.airStatus || null,
           rating: item.rating || item.averageScore || item.score || item.vote_average || 0,
         }),
       });
@@ -347,6 +379,13 @@ export default function SearchPage() {
                     {meta.label}
                   </span>
 
+                  {/* Source badge */}
+                  {item.source && (
+                    <span className="absolute top-2 left-[calc(2rem+0.5rem)] px-1.5 py-0.5 rounded-full bg-gray-700/80 text-[10px] font-medium text-gray-300">
+                      {item.source === 'anilist' ? 'AniList' : item.source === 'tmdb' ? 'TMDB' : item.source}
+                    </span>
+                  )}
+
                   {/* Score badge */}
                   {score != null && (
                     <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-sm text-[10px] font-medium text-white flex items-center gap-0.5">
@@ -392,6 +431,15 @@ export default function SearchPage() {
                 {/* Info */}
                 <div className="p-3">
                   <h3 className="text-sm font-medium text-white truncate leading-snug">{title}</h3>
+                  {item.airStatus && (() => {
+                    const colors = getAirStatusColor(item.airStatus);
+                    return colors ? (
+                      <span className={`inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${colors.bg} ${colors.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
+                        {item.airStatus}
+                      </span>
+                    ) : null;
+                  })()}
                   <div className="flex items-center gap-2 mt-1.5 text-[11px] text-gray-500">
                     {episodes != null && (
                       <span className="flex items-center gap-0.5">
@@ -413,6 +461,18 @@ export default function SearchPage() {
                       ))}
                       {item.genres.length > 2 && (
                         <span className="px-1 py-0.5 text-gray-600 text-[10px]">+{item.genres.length - 2}</span>
+                      )}
+                    </div>
+                  )}
+                  {item.platforms && item.platforms.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {item.platforms.slice(0, 2).map((p: Platform, i: number) => (
+                        <span key={i} className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] rounded font-medium">
+                          {p.name}
+                        </span>
+                      ))}
+                      {item.platforms.length > 2 && (
+                        <span className="px-1 py-0.5 text-gray-600 text-[10px]">+{item.platforms.length - 2}</span>
                       )}
                     </div>
                   )}

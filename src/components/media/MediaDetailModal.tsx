@@ -1,16 +1,31 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, ChevronDown, ChevronUp, Trash2, ExternalLink, Star } from 'lucide-react';
+import { X, ChevronDown, ChevronUp, Trash2, ExternalLink, Star, Calendar, Clock, Tag } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 import { parseGenres } from '@/lib/utils';
 import type { Media } from './MediaGridCard';
 
 const STATUS_OPTIONS = ['watching', 'reading', 'listening', 'completed', 'planned', 'dropped', 'on-hold'] as const;
 
-// Normalize DB status (on_hold) to UI status (on-hold) for comparison
 function toUiStatus(s: string): string {
   return s === 'on_hold' ? 'on-hold' : s;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  anime: 'Anime', manhwa: 'Manhwa', movie: 'Movie', tv: 'TV Show', music: 'Music',
+};
+
+function getExternalLink(media: Media): string | null {
+  if (!media.externalId || !media.externalSource) return null;
+  if (media.externalSource === 'anilist') return `https://anilist.co/anime/${media.externalId}`;
+  if (media.externalSource === 'tmdb') {
+    return media.category === 'movie'
+      ? `https://www.themoviedb.org/movie/${media.externalId}`
+      : `https://www.themoviedb.org/tv/${media.externalId}`;
+  }
+  if (media.externalSource === 'jikan') return `https://myanimelist.net/anime/${media.externalId}`;
+  return null;
 }
 
 export default function MediaDetailModal({
@@ -32,7 +47,6 @@ export default function MediaDetailModal({
 }) {
   const [editStatus, setEditStatus] = useState(toUiStatus(media.status));
   const [editEp, setEditEp] = useState(media.currentEp);
-  const [showDesc, setShowDesc] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -170,9 +184,9 @@ export default function MediaDetailModal({
                 </div>
               )}
               <div className="min-w-0 pb-1">
-                <h2 className="text-lg font-bold text-white truncate">{media.title}</h2>
+                <h2 className="text-lg font-bold text-white leading-snug">{media.title}</h2>
                 {media.originalTitle && (
-                  <p className="text-xs text-gray-400 truncate">{media.originalTitle}</p>
+                  <p className="text-xs text-gray-400 leading-snug">{media.originalTitle}</p>
                 )}
               </div>
             </div>
@@ -259,38 +273,59 @@ export default function MediaDetailModal({
             </div>
           )}
 
-          {/* Description toggle */}
+          {/* Description — always visible */}
           {media.description && (
             <div>
-              <button
-                onClick={() => setShowDesc(!showDesc)}
-                className="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"
-              >
-                {showDesc ? 'Hide' : 'Show'} description
-                <ChevronDown className={`w-3 h-3 transition-transform ${showDesc ? 'rotate-180' : ''}`} />
-              </button>
-              {showDesc && (
-                <p className="text-sm text-gray-400 mt-2 leading-relaxed">{media.description}</p>
-              )}
+              <label className="text-xs text-gray-500 uppercase tracking-wider mb-2 block">About</label>
+              <p className="text-sm text-gray-400 leading-relaxed">{media.description}</p>
             </div>
           )}
 
-          {/* Meta row */}
-          <div className="flex items-center gap-4 text-xs text-gray-500">
+          {/* Meta info */}
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="flex items-center gap-2 text-gray-400">
+              <Tag className="w-3.5 h-3.5 text-gray-500" />
+              <span className="capitalize">{CATEGORY_LABELS[media.category] || media.category}</span>
+            </div>
             {media.releaseDate && (
-              <span>{new Date(media.releaseDate).getFullYear()}</span>
+              <div className="flex items-center gap-2 text-gray-400">
+                <Calendar className="w-3.5 h-3.5 text-gray-500" />
+                <span>{new Date(media.releaseDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+              </div>
             )}
             {media.rating != null && (
-              <span className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> {media.rating.toFixed(1)}
-              </span>
+              <div className="flex items-center gap-2 text-gray-400">
+                <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                <span>{media.rating.toFixed(1)} / 10</span>
+              </div>
+            )}
+            {media.totalEpisodes != null && media.totalEpisodes > 0 && (
+              <div className="flex items-center gap-2 text-gray-400">
+                <Clock className="w-3.5 h-3.5 text-gray-500" />
+                <span>{media.currentEp} / {media.totalEpisodes} episodes</span>
+              </div>
             )}
             {media.externalSource && (
-              <span className="flex items-center gap-1 capitalize">
-                <ExternalLink className="w-3 h-3" /> {media.externalSource}
-              </span>
+              <div className="flex items-center gap-2 text-gray-400">
+                <ExternalLink className="w-3.5 h-3.5 text-gray-500" />
+                <span className="capitalize">{media.externalSource}</span>
+              </div>
             )}
           </div>
+
+          {/* External link */}
+          {getExternalLink(media) && (
+            <a
+              href={getExternalLink(media)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-purple-400 hover:text-purple-300 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              View on {media.externalSource === 'anilist' ? 'AniList' : media.externalSource === 'tmdb' ? 'TMDB' : 'MAL'}
+            </a>
+          )}
         </div>
 
         {/* Footer */}

@@ -21,6 +21,7 @@ export interface Media {
   platforms?: string;
   externalId?: string;
   externalSource?: string;
+  airStatus?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -96,9 +97,58 @@ export default function MediaGridCard({
 
       {/* Info */}
       <div className="p-3 space-y-2">
-        <h3 className="font-medium text-white text-sm truncate" title={item.title}>
+        <h3 className="font-medium text-white text-sm leading-snug" title={item.title}>
           {item.title}
         </h3>
+
+        {item.airStatus && (() => {
+          let dotColor = 'bg-gray-400';
+          let textColor = 'text-gray-400';
+          let bgColor = 'bg-gray-500/10';
+          switch (item.airStatus.toLowerCase()) {
+            case 'airing':
+            case 'releasing':
+              dotColor = 'bg-emerald-400';
+              textColor = 'text-emerald-400';
+              bgColor = 'bg-emerald-500/10';
+              break;
+            case 'ended':
+            case 'finished':
+              dotColor = 'bg-gray-400';
+              textColor = 'text-gray-400';
+              bgColor = 'bg-gray-500/10';
+              break;
+            case 'canceled':
+            case 'cancelled':
+              dotColor = 'bg-red-400';
+              textColor = 'text-red-400';
+              bgColor = 'bg-red-500/10';
+              break;
+            case 'upcoming':
+            case 'not yet released':
+              dotColor = 'bg-amber-400';
+              textColor = 'text-amber-400';
+              bgColor = 'bg-amber-500/10';
+              break;
+            case 'hiatus':
+              dotColor = 'bg-orange-400';
+              textColor = 'text-orange-400';
+              bgColor = 'bg-orange-500/10';
+              break;
+          }
+          return (
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${bgColor} ${textColor}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+              {item.airStatus}
+            </span>
+          );
+        })()}
+
+        {item.description && (
+          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+            {item.description}
+          </p>
+        )}
 
         {genres.length > 0 && (
           <div className="flex flex-wrap gap-1">

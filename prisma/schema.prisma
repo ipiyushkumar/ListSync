@@ -21,6 +21,7 @@ model Media {
   status        String   @default("planned") // watching, completed, dropped, planned, on_hold, reading, listening
   genres        String?  // JSON array stored as string
   platforms     String?  // JSON array stored as string
+  airStatus     String?  // Airing, Ended, Canceled, Upcoming, Hiatus
   externalId    String?  // ID from external API (MAL, AniList, TMDB, etc.)
   externalSource String? // jikan, anilist, tmdb
   createdAt     DateTime @default(now())

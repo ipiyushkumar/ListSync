@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Key, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, Tv, Music, X, Link2 } from 'lucide-react';
+import { Key, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /* ─────────────────────────── Types ─────────────────────────── */
@@ -11,18 +11,6 @@ interface Settings {
   ai: { provider: string; apiKey: string; model: string };
   autoDetection: { socketPort: number; socketEnabled: boolean };
   appearance: { theme: string; accentColor: string };
-}
-
-interface Connector {
-  id: string | null;
-  name: string;
-  type: string;
-  authType: string;
-  icon: string;
-  category: string;
-  isActive: boolean;
-  lastSync: string | null;
-  config: Record<string, string> | null;
 }
 
 type ToastKind = 'success' | 'error' | 'info';
@@ -146,7 +134,6 @@ function KeyInput({ label, value, placeholder, onChange }: {
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [connectors, setConnectors] = useState<Connector[]>([]);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [toast, setToast] = useState<{ kind: ToastKind; message: string } | null>(null);
@@ -160,10 +147,6 @@ export default function SettingsPage() {
       .then((r) => { if (!r.ok) throw new Error('Failed to load settings'); return r.json(); })
       .then(setSettings)
       .catch(() => showToast('error', 'Failed to load settings'));
-    fetch('/api/connectors')
-      .then((r) => { if (!r.ok) throw new Error('Failed to load connectors'); return r.json(); })
-      .then(setConnectors)
-      .catch(() => showToast('error', 'Failed to load connectors'));
   }, [showToast]);
 
   /* ── Derived helpers ──────────────────────────────────────── */
@@ -198,22 +181,6 @@ export default function SettingsPage() {
       showToast('error', 'Failed to save settings');
     } finally {
       setSaving(false);
-    }
-  };
-
-  /* ── Toggle connector ─────────────────────────────────────── */
-  const toggleConnector = async (name: string, next: boolean) => {
-    setConnectors((prev) => prev.map((c) => c.name === name ? { ...c, isActive: next } : c));
-    try {
-      await fetch('/api/connectors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, isActive: next }),
-      });
-      showToast('success', `${name} ${next ? 'connected' : 'disconnected'}`);
-    } catch {
-      showToast('error', `Failed to update ${name}`);
-      setConnectors((prev) => prev.map((c) => c.name === name ? { ...c, isActive: !next } : c));
     }
   };
 
@@ -252,7 +219,7 @@ export default function SettingsPage() {
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Settings</h1>
-          <p className="text-gray-500 mt-1 text-sm">Configure API keys, integrations, and preferences</p>
+          <p className="text-gray-500 mt-1 text-sm">Configure API keys, AI, and preferences</p>
         </div>
         <button
           onClick={handleSave}
@@ -277,37 +244,7 @@ export default function SettingsPage() {
         </div>
       </SectionCard>
 
-      {/* ────────── 2. Integrations ────────── */}
-      <SectionCard icon={Link2} title="Integrations" description="Connect your favorite platforms to sync watch/listen history">
-        <div className="divide-y divide-gray-800/60">
-          {connectors.map((conn) => (
-            <div key={conn.name} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-              <div className="flex items-center gap-3">
-                <span className="text-xl">{conn.icon}</span>
-                <div>
-                  <span className="text-sm font-medium text-gray-200">{conn.name}</span>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-gray-600 capitalize flex items-center gap-1">{conn.type === 'watch' ? <><Tv className="w-3 h-3 inline" /> Watch</> : <><Music className="w-3 h-3 inline" /> Listen</>}</span>
-                    <span className="text-xs text-gray-700">•</span>
-                    <span className="text-xs text-gray-600 capitalize">{conn.authType === 'oauth' ? 'OAuth' : 'API Key'}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {conn.lastSync && (
-                  <span className="text-xs text-gray-600">
-                    Synced {new Date(conn.lastSync).toLocaleDateString()}
-                  </span>
-                )}
-                <div className={`w-2 h-2 rounded-full ${conn.isActive ? 'bg-green-400' : 'bg-gray-600'}`} />
-                <Toggle checked={conn.isActive} onChange={(v) => toggleConnector(conn.name, v)} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </SectionCard>
-
-      {/* ────────── 3. AI Configuration ────────── */}
+      {/* ────────── 2. AI Configuration ────────── */}
       <SectionCard icon={Bot} title="AI Configuration" description="Use AI for smart recommendations and metadata enrichment">
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1.5">Provider</label>
@@ -370,7 +307,7 @@ export default function SettingsPage() {
         </button>
       </SectionCard>
 
-      {/* ────────── 4. Auto-Detection ────────── */}
+      {/* ────────── 3. Auto-Detection ────────── */}
       <SectionCard icon={ScanSearch} title="Auto-Detection" description="Automatically detect media from your browser via Chrome extension">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 bg-gray-800 rounded-xl p-4 border border-gray-700/50">
@@ -422,7 +359,7 @@ export default function SettingsPage() {
         </div>
       </SectionCard>
 
-      {/* ────────── 5. Appearance ────────── */}
+      {/* ────────── 4. Appearance ────────── */}
       <SectionCard icon={Palette} title="Appearance" description="Customize the look and feel of ListSync">
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-3">Theme</label>

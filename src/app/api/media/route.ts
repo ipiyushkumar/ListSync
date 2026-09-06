@@ -62,7 +62,8 @@ export async function POST(request: NextRequest) {
       const updateData: Record<string, unknown> = {};
       if (body.description) updateData.description = body.description;
       if (body.posterUrl || body.coverImage) updateData.posterUrl = body.posterUrl || body.coverImage;
-      if (body.totalEpisodes) updateData.totalEpisodes = body.totalEpisodes;
+      if (body.totalEpisodes != null && body.totalEpisodes > 0) updateData.totalEpisodes = body.totalEpisodes;
+      if (body.airStatus != null) updateData.airStatus = body.airStatus;
       if (body.rating) updateData.rating = body.rating;
       if (body.releaseDate) updateData.releaseDate = body.releaseDate;
       if (body.genres) updateData.genres = JSON.stringify(body.genres);
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
         genres: body.genres ? JSON.stringify(body.genres) : null,
         releaseDate: body.releaseDate,
         platforms: body.platforms ? JSON.stringify(body.platforms) : null,
+        airStatus: body.airStatus || null,
       },
     });
 

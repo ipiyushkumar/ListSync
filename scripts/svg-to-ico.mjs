@@ -4,7 +4,9 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const svgPath = path.join(__dirname, '..', 'public', 'icon.svg');
-const icoPath = path.join(__dirname, '..', 'public', 'favicon.ico');
+// Next.js App Router: app/favicon.ico takes precedence over public/favicon.ico
+const icoPath = path.join(__dirname, '..', 'src', 'app', 'favicon.ico');
+const icoPublicPath = path.join(__dirname, '..', 'public', 'favicon.ico');
 
 async function convert() {
   // Generate multiple sizes
@@ -54,11 +56,13 @@ async function convert() {
   // Combine all buffers
   const ico = Buffer.concat([header, dir, ...buffers.map(b => b.buffer)]);
   
-  // Write ICO file
+  // Write ICO file to both locations
   const fs = await import('fs');
   fs.writeFileSync(icoPath, ico);
+  fs.copyFileSync(icoPath, icoPublicPath);
   
   console.log(`Favicon created: ${icoPath} (${ico.length} bytes)`);
+  console.log(`Also copied to: ${icoPublicPath}`);
   console.log(`Sizes: ${buffers.map(b => `${b.size}x${b.size}`).join(', ')}`);
 }
 
