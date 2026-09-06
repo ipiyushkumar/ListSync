@@ -15,9 +15,14 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 // PUT /api/media/[id] — partial update (only provided fields)
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  let body;
   try {
-    const { id } = await params;
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+  try {
 
     const allowedFields = [
       'title', 'originalTitle', 'description', 'category',

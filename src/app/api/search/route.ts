@@ -48,7 +48,7 @@ async function searchAniListAnime(query: string): Promise<SearchResult[]> {
       releaseDate: m.startDate ? `${(m.startDate as { year: number }).year}-${(m.startDate as { month: number }).month}` : undefined,
       source: 'anilist',
     }));
-  } catch (e) { console.error('AniList anime search error:', e); return []; }
+  } catch { return []; }
 }
 
 // AniList (Manhwa/Manga) - GraphQL

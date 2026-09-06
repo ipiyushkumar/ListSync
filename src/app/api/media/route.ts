@@ -98,10 +98,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(media, { status: 201 });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Database error', detail: error instanceof Error ? error.message : 'Unknown' },
-      { status: 500 },
-    );
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 }
