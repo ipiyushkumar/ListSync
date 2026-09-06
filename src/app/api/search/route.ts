@@ -51,27 +51,6 @@ async function searchAniListAnime(query: string): Promise<SearchResult[]> {
   } catch (e) { console.error('AniList anime search error:', e); return []; }
 }
 
-// Jikan (Anime fallback) - no key needed
-async function searchJikan(query: string): Promise<SearchResult[]> {
-  try {
-    const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=5`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.data || []).map((a: Record<string, unknown>) => ({
-      id: a.mal_id,
-      title: (a.title as string) || '',
-      description: (a.synopsis as string) || '',
-      category: 'anime',
-      coverImage: (a.images as Record<string, Record<string, string>>)?.jpg?.large_image_url,
-      rating: a.score as number,
-      totalEpisodes: a.episodes as number,
-      genres: ((a.genres as { name: string }[]) || []).map((g) => g.name),
-      releaseDate: (a.aired as Record<string, string>)?.from,
-      source: 'jikan',
-    }));
-  } catch { return []; }
-}
-
 // AniList (Manhwa/Manga) - GraphQL
 async function searchAniList(query: string): Promise<SearchResult[]> {
   try {
