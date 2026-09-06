@@ -66,7 +66,7 @@ export default function MediaCard({ media, onUpdate, onDelete }: MediaCardProps)
 
   return (
     <>
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-purple-600/50 transition-all duration-200 group">
+      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-accent/50 transition-all duration-200 group">
         {/* Poster */}
         <div className="relative aspect-[2/3] bg-gray-800 overflow-hidden">
           <div className="relative w-full h-full">
@@ -87,7 +87,7 @@ export default function MediaCard({ media, onUpdate, onDelete }: MediaCardProps)
             <div className="flex gap-2 w-full">
               <button
                 onClick={handleIncrementEp}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium py-2 rounded-lg transition-colors"
+                className="flex-1 bg-accent hover:bg-accent-hover text-white text-xs font-medium py-2 rounded-lg transition-colors"
               >
                 +1 Episode
               </button>

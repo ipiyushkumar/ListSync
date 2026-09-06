@@ -24,7 +24,7 @@ export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
       <div className="p-6 border-b border-gray-800">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+        <h1 className="text-xl font-bold bg-gradient-to-r from-accent to-pink-500 bg-clip-text text-transparent">
           ListSync
         </h1>
         <p className="text-xs text-gray-500 mt-1">Media Tracker</p>
@@ -38,7 +38,7 @@ export default function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 pathname === item.href
-                  ? 'bg-purple-500/10 text-purple-400'
+                  ? 'bg-accent/10 text-accent'
                   : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
               }`}
             >

@@ -202,8 +202,8 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-purple-500/10">
-            <Icon className="w-6 h-6 text-purple-400" />
+          <div className="p-2 rounded-xl bg-accent/10">
+            <Icon className="w-6 h-6 text-accent" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">{title}</h1>
@@ -239,7 +239,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={`Search ${title.toLowerCase()}...`}
-            className="w-full pl-9 pr-8 py-2 bg-gray-900 border border-gray-800 rounded-lg text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-purple-500/50 transition-colors"
+            className="w-full pl-9 pr-8 py-2 bg-gray-900 border border-gray-800 rounded-lg text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-accent/50 transition-colors"
           />
           {searchQuery && (
             <button
@@ -271,7 +271,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
                     setShowSortMenu(false);
                   }}
                   className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${
-                    sortKey === option.key ? 'text-purple-400 bg-purple-500/10' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+                    sortKey === option.key ? 'text-accent bg-accent/10' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
                   }`}
                 >
                   {option.label}
@@ -283,10 +283,10 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
         </div>
 
         <div className="flex bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-          <button onClick={() => setViewMode('grid')} className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-purple-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+          <button onClick={() => setViewMode('grid')} className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'}`}>
             <Grid3X3 className="w-4 h-4" />
           </button>
-          <button onClick={() => setViewMode('list')} className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-purple-600 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+          <button onClick={() => setViewMode('list')} className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'}`}>
             <List className="w-4 h-4" />
           </button>
         </div>
@@ -297,7 +297,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
         <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => setActiveGenre(null)}
-            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${activeGenre === null ? 'bg-purple-600 text-white' : 'bg-gray-800/50 text-gray-500 hover:text-gray-300 hover:bg-gray-800'}`}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${activeGenre === null ? 'bg-accent text-white' : 'bg-gray-800/50 text-gray-500 hover:text-gray-300 hover:bg-gray-800'}`}
           >
             All genres
           </button>
@@ -305,7 +305,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
             <button
               key={genre}
               onClick={() => setActiveGenre(activeGenre === genre ? null : genre)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${activeGenre === genre ? 'bg-purple-600 text-white' : 'bg-gray-800/50 text-gray-500 hover:text-gray-300 hover:bg-gray-800'}`}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${activeGenre === genre ? 'bg-accent text-white' : 'bg-gray-800/50 text-gray-500 hover:text-gray-300 hover:bg-gray-800'}`}
             >
               {genre}
             </button>

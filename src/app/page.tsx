@@ -48,7 +48,7 @@ function MiniBar({ value, max }: { value: number; max: number }) {
   return (
     <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
       <div
-        className="h-full bg-purple-500/60 rounded-full transition-all duration-300"
+        className="h-full bg-accent/60 rounded-full transition-all duration-300"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -156,7 +156,7 @@ export default function Dashboard() {
       {/* Metric strip — hero + supports */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {/* Hero: Total items */}
-        <div className="col-span-2 sm:col-span-1 bg-gray-900/80 border border-purple-500/20 rounded-lg p-4">
+        <div className="col-span-2 sm:col-span-1 bg-gray-900/80 border border-accent/20 rounded-lg p-4">
           <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Total items</div>
           <div className="text-3xl font-bold text-white tabular-nums tracking-tight">{stats.total}</div>
           <div className="text-[11px] text-gray-600 mt-1 font-mono tabular-nums">
@@ -264,7 +264,7 @@ export default function Dashboard() {
         {recentItems.length === 0 ? (
           <div className="px-4 py-12 text-center">
             <p className="text-xs text-gray-500">No media added yet</p>
-            <Link href="/search" className="text-xs text-purple-400 hover:text-purple-300 mt-1 inline-flex items-center gap-1 transition-colors">
+            <Link href="/search" className="text-xs text-accent hover:text-accent mt-1 inline-flex items-center gap-1 transition-colors">
               Search and add your first title <ArrowRight className="w-3 h-3" />
             </Link>
           </div>

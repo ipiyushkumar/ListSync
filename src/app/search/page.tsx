@@ -56,7 +56,7 @@ interface LibraryEntry {
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: typeof Film; color: string; bg: string }> = {
-  anime: { label: 'Anime', icon: Sparkles, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  anime: { label: 'Anime', icon: Sparkles, color: 'text-accent', bg: 'bg-accent/10' },
   manhwa: { label: 'Manhwa', icon: BookOpen, color: 'text-blue-400', bg: 'bg-blue-500/10' },
   movie: { label: 'Movie', icon: Film, color: 'text-amber-400', bg: 'bg-amber-500/10' },
   tv: { label: 'TV Show', icon: Tv, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
@@ -538,7 +538,7 @@ export default function SearchPage() {
                   {item.platforms && item.platforms.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {item.platforms.slice(0, 2).map((p: Platform, i: number) => (
-                        <span key={i} className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] rounded font-medium">
+                        <span key={i} className="px-1.5 py-0.5 bg-accent/20 text-accent text-[10px] rounded font-medium">
                           {p.name}
                         </span>
                       ))}

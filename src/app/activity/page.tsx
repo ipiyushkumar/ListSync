@@ -32,10 +32,10 @@ interface ActivityItem {
 
 const ACTION_META: Record<string, { icon: typeof Play; color: string; bgColor: string; label: string }> = {
   started: { icon: Play, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', label: 'Started' },
-  episode_watched: { icon: Eye, color: 'text-purple-400', bgColor: 'bg-purple-500/10', label: 'Watched episode' },
+  episode_watched: { icon: Eye, color: 'text-accent', bgColor: 'bg-accent/10', label: 'Watched episode' },
   completed: { icon: CheckCircle2, color: 'text-blue-400', bgColor: 'bg-blue-500/10', label: 'Completed' },
   paused: { icon: Pause, color: 'text-amber-400', bgColor: 'bg-amber-500/10', label: 'Paused' },
-  watched: { icon: Eye, color: 'text-purple-400', bgColor: 'bg-purple-500/10', label: 'Watched' },
+  watched: { icon: Eye, color: 'text-accent', bgColor: 'bg-accent/10', label: 'Watched' },
   read: { icon: BookOpen, color: 'text-cyan-400', bgColor: 'bg-cyan-500/10', label: 'Read' },
   listened: { icon: Music, color: 'text-pink-400', bgColor: 'bg-pink-500/10', label: 'Listened' },
 };
@@ -127,8 +127,8 @@ export default function ActivityPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-purple-500/10">
-            <ActivityIcon className="w-6 h-6 text-purple-400" />
+          <div className="p-2 rounded-xl bg-accent/10">
+            <ActivityIcon className="w-6 h-6 text-accent" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Activity</h1>
@@ -148,7 +148,7 @@ export default function ActivityPage() {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-purple-500/50 transition-colors"
+          className="px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg text-sm text-gray-300 focus:outline-none focus:border-accent/50 transition-colors"
         >
           <option value="all">All categories</option>
           {categories.map((c) => (
@@ -164,7 +164,7 @@ export default function ActivityPage() {
             onClick={() => setActionFilter('all')}
             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
               actionFilter === 'all'
-                ? 'bg-purple-600 text-white'
+                ? 'bg-accent text-white'
                 : 'bg-gray-800/50 text-gray-500 hover:text-gray-300 hover:bg-gray-800'
             }`}
           >
@@ -176,7 +176,7 @@ export default function ActivityPage() {
               onClick={() => setActionFilter(actionFilter === key ? 'all' : key)}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
                 actionFilter === key
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-accent text-white'
                   : 'bg-gray-800/50 text-gray-500 hover:text-gray-300 hover:bg-gray-800'
               }`}
             >
@@ -233,7 +233,7 @@ export default function ActivityPage() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <Link
                                 href={`/media/${activity.media.id}`}
-                                className="text-sm font-medium text-white hover:text-purple-400 transition-colors truncate"
+                                className="text-sm font-medium text-white hover:text-accent transition-colors truncate"
                               >
                                 {activity.media.title}
                               </Link>
@@ -253,7 +253,7 @@ export default function ActivityPage() {
                                   activity.source === 'auto'
                                     ? 'bg-gray-800 text-gray-400'
                                     : activity.source === 'extension'
-                                    ? 'bg-purple-500/10 text-purple-400'
+                                    ? 'bg-accent/10 text-accent'
                                     : 'bg-gray-800 text-gray-400'
                                 }`}>
                                   {activity.source}

@@ -130,7 +130,7 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
                   onClick={() => setFormData({ ...formData, status: opt.value })}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     formData.status === opt.value
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-accent text-white'
                       : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                   }`}
                 >
@@ -154,7 +154,7 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
                 onChange={(e) =>
                   setFormData({ ...formData, currentEp: parseInt(e.target.value) || 0 })
                 }
-                className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white w-24 focus:outline-none focus:border-purple-600"
+                className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white w-24 focus:outline-none focus:border-accent"
               />
               <input
                 type="range"
@@ -164,7 +164,7 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
                 onChange={(e) =>
                   setFormData({ ...formData, currentEp: parseInt(e.target.value) })
                 }
-                className="flex-1 accent-purple-600"
+                className="flex-1 accent-accent"
               />
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
               value={formData.description ?? ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-purple-600 resize-none"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-accent resize-none"
               placeholder="Add a description..."
             />
           </div>
@@ -208,7 +208,7 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
               type="text"
               value={formData.genres ?? ''}
               onChange={(e) => setFormData({ ...formData, genres: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-purple-600"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-accent"
               placeholder='["Action", "Drama"]'
             />
           </div>
@@ -232,7 +232,7 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-6 py-2 rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors disabled:opacity-50"
+            className="px-6 py-2 rounded-lg text-sm font-medium text-white bg-accent hover:bg-accent-hover transition-colors disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>

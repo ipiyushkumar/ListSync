@@ -205,7 +205,7 @@ export default function MediaDetailModal({
                   onClick={() => setEditStatus(s)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     editStatus === s
-                      ? 'bg-purple-600 text-white'
+                      ? 'bg-accent text-white'
                       : 'bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700'
                   }`}
                 >
@@ -319,7 +319,7 @@ export default function MediaDetailModal({
               href={getExternalLink(media)!}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-purple-400 hover:text-purple-300 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-xs text-accent hover:text-accent transition-colors"
               onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="w-3.5 h-3.5" />
@@ -354,7 +354,7 @@ export default function MediaDetailModal({
           <button
             onClick={handleSave}
             disabled={!hasChanges || saving}
-            className="px-5 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+            className="px-5 py-2 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
           >
             {saving ? 'Saving...' : 'Save'}
           </button>

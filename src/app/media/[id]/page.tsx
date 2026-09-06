@@ -47,7 +47,7 @@ const STATUS_OPTIONS = [
   { value: 'completed', label: 'Completed', icon: Check, color: 'bg-green-600 hover:bg-green-700' },
   { value: 'on_hold', label: 'On Hold', icon: Pause, color: 'bg-yellow-600 hover:bg-yellow-700' },
   { value: 'dropped', label: 'Dropped', icon: XCircle, color: 'bg-red-600 hover:bg-red-700' },
-  { value: 'planned', label: 'Planned', icon: Bookmark, color: 'bg-purple-600 hover:bg-purple-700' },
+  { value: 'planned', label: 'Planned', icon: Bookmark, color: 'bg-accent hover:bg-accent-hover' },
   { value: 'reading', label: 'Reading', icon: BookOpen, color: 'bg-indigo-600 hover:bg-indigo-700' },
   { value: 'listening', label: 'Listening', icon: Music, color: 'bg-pink-600 hover:bg-pink-700' },
 ] as const;
@@ -93,7 +93,7 @@ function StatusBadge({ status }: { status: string }) {
     on_hold: { bg: 'bg-yellow-900/50', text: 'text-yellow-300' },
     'on-hold': { bg: 'bg-yellow-900/50', text: 'text-yellow-300' },
     dropped: { bg: 'bg-red-900/50', text: 'text-red-300' },
-    planned: { bg: 'bg-purple-900/50', text: 'text-purple-300' },
+    planned: { bg: 'bg-accent/10', text: 'text-accent' },
     reading: { bg: 'bg-indigo-900/50', text: 'text-indigo-300' },
     listening: { bg: 'bg-pink-900/50', text: 'text-pink-300' },
   };
@@ -108,7 +108,7 @@ function StatusBadge({ status }: { status: string }) {
 function CategoryBadge({ category }: { category: string }) {
   const Icon = CATEGORY_ICONS[category] || Film;
   return (
-    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-purple-900/50 text-purple-300">
+    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent">
       <Icon size={12} />
       {category.charAt(0).toUpperCase() + category.slice(1)}
     </span>
@@ -236,7 +236,7 @@ export default function MediaDetailPage() {
           <p className="text-gray-400 text-lg">{error || 'Media not found'}</p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover rounded-lg transition-colors"
           >
             <ArrowLeft size={16} />
             Back to Home
@@ -271,7 +271,7 @@ export default function MediaDetailPage() {
             <div className="relative w-full aspect-[2/3] rounded-xl shadow-2xl overflow-hidden">
               {media.posterUrl ? (
                 <>
-                  <div className="absolute inset-0 z-0 bg-gradient-to-br from-purple-900 via-gray-900 to-gray-800 flex items-center justify-center">
+                  <div className="absolute inset-0 z-0 bg-gradient-to-br from-accent/20 via-gray-900 to-gray-800 flex items-center justify-center">
                     {React.createElement(CATEGORY_ICONS[media.category] || Film, { size: 64, className: 'text-gray-500' })}
                   </div>
                   <img
@@ -282,7 +282,7 @@ export default function MediaDetailPage() {
                   />
                 </>
               ) : (
-              <div className="w-full aspect-[2/3] rounded-xl shadow-2xl bg-gradient-to-br from-purple-900 via-gray-900 to-gray-800 flex items-center justify-center">
+              <div className="w-full aspect-[2/3] rounded-xl shadow-2xl bg-gradient-to-br from-accent/20 via-gray-900 to-gray-800 flex items-center justify-center">
                 <span className="text-gray-500 text-4xl">
                   {React.createElement(CATEGORY_ICONS[media.category] || Film, { size: 64 })}
                 </span>
@@ -325,14 +325,14 @@ export default function MediaDetailPage() {
                 </div>
                 <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-accent to-accent rounded-full transition-all duration-500"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
                 <button
                   onClick={handleNextEpisode}
                   disabled={incrementing || (media.totalEpisodes != null && media.totalEpisodes > 0 && media.currentEp >= media.totalEpisodes)}
-                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-purple-600/20 text-purple-300 rounded-lg hover:bg-purple-600/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-accent/20 text-accent rounded-lg hover:bg-accent/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {incrementing ? (
                     <Loader2 size={12} className="animate-spin" />
@@ -400,7 +400,7 @@ export default function MediaDetailPage() {
                     disabled={updatingStatus || media.status === value}
                     className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                       media.status === value
-                        ? 'ring-2 ring-purple-500 ' + color
+                        ? 'ring-2 ring-accent ' + color
                         : color
                     }`}
                   >

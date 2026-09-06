@@ -73,8 +73,8 @@ function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (
       type="button"
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500/50 ${
-        checked ? 'bg-purple-500' : 'bg-gray-700'
+      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent/50 ${
+        checked ? 'bg-accent' : 'bg-gray-700'
       } ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
     >
       <span
@@ -95,7 +95,7 @@ function SectionCard({ icon: Icon, title, description, children }: {
     <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
       <div className="px-6 py-5 border-b border-gray-800/60">
         <div className="flex items-center gap-3">
-          <Icon className="w-6 h-6 text-purple-400" />
+          <Icon className="w-6 h-6 text-accent" />
           <div>
             <h2 className="text-lg font-semibold text-white">{title}</h2>
             <p className="text-sm text-gray-500 mt-0.5">{description}</p>
@@ -124,7 +124,7 @@ function KeyInput({ label, value, placeholder, onChange }: {
           value={value}
           placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 pr-12 text-sm text-gray-100 placeholder-gray-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-colors outline-none"
+          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 pr-12 text-sm text-gray-100 placeholder-gray-600 focus:border-accent focus:ring-1 focus:ring-accent/30 transition-colors outline-none"
         />
         <button
           type="button"
@@ -227,7 +227,7 @@ export default function SettingsPage() {
     return (
       <div className="p-8 flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500" />
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-accent" />
           <p className="text-gray-500 text-sm">Loading settings…</p>
         </div>
       </div>
@@ -248,7 +248,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
+          className="px-6 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
         >
           {saving && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" />}
           Save Changes
@@ -267,7 +267,7 @@ export default function SettingsPage() {
             className="h-[42px] px-4 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 text-sm font-medium rounded-xl transition-colors flex items-center gap-2 whitespace-nowrap"
           >
             {testing ? (
-              <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-gray-500 border-t-purple-400" />
+              <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-gray-500 border-t-accent" />
             ) : (
               <Zap className="w-3.5 h-3.5" />
             )}
@@ -278,7 +278,7 @@ export default function SettingsPage() {
           <p className="text-xs text-gray-500 leading-relaxed">
             API keys are stored locally in SQLite and never leave your server.
             Get a TMDB key at{' '}
-            <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">themoviedb.org</a>.
+            <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">themoviedb.org</a>.
             AniList does not require an API key — anime and manhwa metadata is fetched automatically.
           </p>
         </div>
@@ -294,7 +294,7 @@ export default function SettingsPage() {
               const p = AI_PROVIDERS.find((pp) => pp.value === e.target.value)!;
               updateSettings({ ai: { ...settings.ai, provider: e.target.value, model: p.models[0] } });
             }}
-            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-colors outline-none appearance-none cursor-pointer"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:border-accent focus:ring-1 focus:ring-accent/30 transition-colors outline-none appearance-none cursor-pointer"
           >
             {AI_PROVIDERS.map((p) => (
               <option key={p.value} value={p.value}>{p.label}</option>
@@ -307,7 +307,7 @@ export default function SettingsPage() {
           <select
             value={settings.ai.model}
             onChange={(e) => updateSettings({ ai: { ...settings.ai, model: e.target.value } })}
-            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-colors outline-none appearance-none cursor-pointer"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:border-accent focus:ring-1 focus:ring-accent/30 transition-colors outline-none appearance-none cursor-pointer"
           >
             {currentProvider.models.map((m) => (
               <option key={m} value={m}>{m}</option>
@@ -323,7 +323,7 @@ export default function SettingsPage() {
           <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
             <p className="text-xs text-gray-500 leading-relaxed">
               Ollama runs locally — no API key needed. Make sure Ollama is running on{' '}
-              <code className="text-purple-400">http://localhost:11434</code>.
+              <code className="text-accent">http://localhost:11434</code>.
             </p>
           </div>
         )}
@@ -334,7 +334,7 @@ export default function SettingsPage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 bg-gray-800 rounded-xl p-4 border border-gray-700/50">
             <div className="flex items-center gap-3 mb-3">
-              <Puzzle className="w-6 h-6 text-purple-400" />
+              <Puzzle className="w-6 h-6 text-accent" />
               <div>
                 <h3 className="text-sm font-medium text-white">Chrome Extension</h3>
                 <p className="text-xs text-gray-500">Detect media from streaming sites</p>
@@ -351,7 +351,7 @@ export default function SettingsPage() {
           <div className="flex-1 bg-gray-800 rounded-xl p-4 border border-gray-700/50">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <Radio className="w-6 h-6 text-purple-400" />
+                <Radio className="w-6 h-6 text-accent" />
                 <div>
                   <h3 className="text-sm font-medium text-white">Socket.io Server</h3>
                   <p className="text-xs text-gray-500">Receives events from extension</p>
@@ -373,7 +373,7 @@ export default function SettingsPage() {
                   type="number"
                   value={settings.autoDetection.socketPort}
                   onChange={(e) => updateSettings({ autoDetection: { ...settings.autoDetection, socketPort: parseInt(e.target.value) || 3001 } })}
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-gray-200 focus:border-purple-500 outline-none"
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-gray-200 focus:border-accent outline-none"
                 />
               </div>
             </div>
@@ -386,8 +386,8 @@ export default function SettingsPage() {
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-3">Theme</label>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 px-4 py-3 bg-gray-800 rounded-xl border border-purple-500/30">
-              <Moon className="w-5 h-5 text-purple-400" />
+            <div className="flex items-center gap-3 px-4 py-3 bg-gray-800 rounded-xl border border-accent/30">
+              <Moon className="w-5 h-5 text-accent" />
               <div>
                 <span className="text-sm font-medium text-white">Dark</span>
                 <span className="text-xs text-gray-500 ml-2">(only option for now)</span>

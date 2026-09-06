@@ -228,7 +228,7 @@ export default function ExportPage() {
         {/* Export Section */}
         <div className="bg-gray-900/50 border border-gray-800/50 rounded-lg p-6">
           <h2 className="text-lg font-medium text-white flex items-center gap-2">
-            <Download size={20} className="text-purple-400" />
+            <Download size={20} className="text-accent" />
             Export Library
           </h2>
           <p className="mt-1 text-sm text-gray-400">
@@ -254,7 +254,7 @@ export default function ExportPage() {
             <button
               onClick={handleExportJson}
               disabled={loading || mediaCount === 0}
-              className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
             >
               <FileJson size={16} />
               Download JSON
@@ -262,7 +262,7 @@ export default function ExportPage() {
             <button
               onClick={handleExportCsv}
               disabled={loading || mediaCount === 0}
-              className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
             >
               <FileText size={16} />
               Download CSV
@@ -273,7 +273,7 @@ export default function ExportPage() {
         {/* Import Section */}
         <div className="bg-gray-900/50 border border-gray-800/50 rounded-lg p-6">
           <h2 className="text-lg font-medium text-white flex items-center gap-2">
-            <Upload size={20} className="text-purple-400" />
+            <Upload size={20} className="text-accent" />
             Import Library
           </h2>
           <p className="mt-1 text-sm text-gray-400">
@@ -289,7 +289,7 @@ export default function ExportPage() {
             onClick={() => fileInputRef.current?.click()}
             className={`mt-4 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               isDragging
-                ? 'border-purple-500 bg-purple-500/5'
+                ? 'border-accent bg-accent/5'
                 : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/30'
             }`}
           >
@@ -363,7 +363,7 @@ export default function ExportPage() {
               <button
                 onClick={handleImport}
                 disabled={importing}
-                className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
               >
                 {importing ? (
                   <>

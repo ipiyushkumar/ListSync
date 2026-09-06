@@ -75,7 +75,7 @@ export default function MediaGridCard({
               if (!isComplete) onIncrement();
             }}
             disabled={isComplete}
-            className="w-full py-1.5 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-500 text-white text-xs font-medium rounded-lg transition-colors"
+            className="w-full py-1.5 bg-accent hover:bg-accent-hover disabled:bg-gray-700 disabled:text-gray-500 text-white text-xs font-medium rounded-lg transition-colors"
           >
             {isComplete ? 'Complete' : incrementLabel}
           </button>

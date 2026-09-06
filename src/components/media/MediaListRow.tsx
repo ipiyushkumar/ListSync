@@ -78,7 +78,7 @@ export default function MediaListRow({
           if (!isComplete) onIncrement();
         }}
         disabled={isComplete}
-        className="p-1.5 rounded-lg bg-gray-800 hover:bg-purple-600 disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors shrink-0"
+        className="p-1.5 rounded-lg bg-gray-800 hover:bg-accent disabled:opacity-30 disabled:cursor-not-allowed text-gray-400 hover:text-white transition-colors shrink-0"
         title={isComplete ? 'Completed' : incrementLabel}
       >
         <Plus className="w-4 h-4" />
