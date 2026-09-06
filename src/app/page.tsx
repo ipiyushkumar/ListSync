@@ -41,6 +41,8 @@ const CATEGORY_META: Record<string, { icon: LucideIcon; label: string }> = {
 
 const STATUS_META: Record<string, { icon: LucideIcon; color: string; dot: string }> = {
   watching: { icon: Eye, color: 'text-emerald-400', dot: 'bg-emerald-400' },
+  reading: { icon: BookOpen, color: 'text-emerald-400', dot: 'bg-emerald-400' },
+  listening: { icon: Music, color: 'text-emerald-400', dot: 'bg-emerald-400' },
   completed: { icon: CheckCircle2, color: 'text-blue-400', dot: 'bg-blue-400' },
   planned: { icon: Clock, color: 'text-gray-400', dot: 'bg-gray-400' },
   dropped: { icon: Ban, color: 'text-red-400', dot: 'bg-red-400' },

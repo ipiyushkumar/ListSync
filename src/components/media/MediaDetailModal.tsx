@@ -40,6 +40,13 @@ export default function MediaDetailModal({
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Reset state when a different media item opens
+  useEffect(() => {
+    setEditStatus(media.status);
+    setEditEp(media.currentEp);
+    setDeleting(false);
+  }, [media.id, media.status, media.currentEp]);
+
   const genres = parseJson(media.genres);
   const platforms = parseJson(media.platforms);
 

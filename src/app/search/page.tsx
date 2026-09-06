@@ -154,7 +154,7 @@ export default function SearchPage() {
         setAddedIds(prev => new Set(prev).add(`${item.id}-${item.category}`));
         setToast({ message: `Added "${title}" to library`, type: 'success' });
       } else {
-        const errText = await res.text();
+        const errText = await res.text().catch(() => `HTTP ${res.status}`);
         setToast({ message: `Failed to add: ${errText}`, type: 'error' });
       }
     } catch (err: any) {

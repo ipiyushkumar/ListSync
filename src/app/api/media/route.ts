@@ -3,22 +3,26 @@ import { prisma } from '@/lib/prisma';
 
 // GET /api/media
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const category = searchParams.get('category');
-  const status = searchParams.get('status');
-  const limit = searchParams.get('limit');
+  try {
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    const status = searchParams.get('status');
+    const limit = searchParams.get('limit');
 
-  const where: Record<string, string> = {};
-  if (category) where.category = category;
-  if (status) where.status = status;
+    const where: Record<string, string> = {};
+    if (category) where.category = category;
+    if (status) where.status = status;
 
-  const media = await prisma.media.findMany({
-    where,
-    orderBy: { updatedAt: 'desc' },
-    ...(limit ? { take: parseInt(limit) } : {}),
-  });
+    const media = await prisma.media.findMany({
+      where,
+      orderBy: { updatedAt: 'desc' },
+      ...(limit ? { take: parseInt(limit) } : {}),
+    });
 
-  return NextResponse.json(media);
+    return NextResponse.json(media);
+  } catch {
+    return NextResponse.json({ error: 'Failed to fetch media' }, { status: 500 });
+  }
 }
 
 // POST /api/media
