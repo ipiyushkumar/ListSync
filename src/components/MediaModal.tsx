@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import Toast from './Toast';
 
 interface Media {
@@ -107,9 +108,9 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors text-2xl"
+            className="text-gray-400 hover:text-white transition-colors"
           >
-            ✕
+            <X size={20} />
           </button>
         </div>
 
