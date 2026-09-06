@@ -307,9 +307,19 @@ export default function Dashboard() {
                     >
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-6 h-8 rounded overflow-hidden bg-gray-800 shrink-0">
+                          <div className="w-6 h-8 rounded overflow-hidden bg-gray-800 shrink-0 relative">
                             {item.posterUrl ? (
-                              <img src={item.posterUrl} alt="" className="w-full h-full object-cover" />
+                              <>
+                                <div className="absolute inset-0 flex items-center justify-center z-0">
+                                  <CatIcon className="w-3 h-3 text-gray-600" />
+                                </div>
+                                <img
+                                  src={item.posterUrl}
+                                  alt=""
+                                  className="absolute inset-0 w-full h-full object-cover z-10"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                />
+                              </>
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <CatIcon className="w-3 h-3 text-gray-600" />

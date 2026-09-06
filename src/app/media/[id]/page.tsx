@@ -153,11 +153,9 @@ export default function MediaDetailPage() {
       const res = await fetch(`/api/media/${id}`, { method: 'DELETE' });
       if (res.ok) {
         router.push('/');
-      } else {
-        console.error('Failed to delete media');
       }
     } catch {
-      console.error('Failed to delete media');
+      // silent — delete failed
     }
   };
 

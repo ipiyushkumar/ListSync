@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Key, Link, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, Tv, Music, X } from 'lucide-react';
+import { Key, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, Tv, Music, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /* ─────────────────────────── Types ─────────────────────────── */

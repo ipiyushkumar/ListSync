@@ -28,14 +28,18 @@ export default function MediaListRow({
       onClick={onClick}
     >
       {/* Thumbnail */}
-      <div className="w-10 h-14 rounded-lg overflow-hidden bg-gray-800 shrink-0">
-        {item.posterUrl ? (
-          <img src={item.posterUrl} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-600 text-sm font-bold">
-            {item.title[0]}
-          </div>
+      <div className="w-10 h-14 rounded-lg overflow-hidden bg-gray-800 shrink-0 relative">
+        {item.posterUrl && (
+          <img
+            src={item.posterUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover z-10"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
         )}
+        <div className="absolute inset-0 flex items-center justify-center z-0">
+          <span className="text-sm font-bold text-gray-600">{item.title[0]}</span>
+        </div>
       </div>
 
       {/* Title + genres */}

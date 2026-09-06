@@ -77,7 +77,7 @@ export default function MediaDetailModal({
     } finally {
       setSaving(false);
     }
-  }, [media.id, media.totalEpisodes, editStatus, editEp, onUpdate]);
+  }, [media.id, media.totalEpisodes, media.category, editStatus, editEp, onUpdate]);
 
   const handleDelete = useCallback(async () => {
     if (!deleting) {
@@ -112,12 +112,17 @@ export default function MediaDetailModal({
       >
         {/* Header with poster */}
         <div className="relative h-48 bg-gray-800 overflow-hidden rounded-t-2xl">
-          {media.posterUrl ? (
-            <img src={media.posterUrl} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-600 text-5xl font-bold">
-              {media.title[0]}
-            </div>
+          {/* Fallback — always rendered behind the image */}
+          <div className="absolute inset-0 flex items-center justify-center z-0">
+            <span className="text-5xl font-bold text-gray-700">{media.title[0]}</span>
+          </div>
+          {media.posterUrl && (
+            <img
+              src={media.posterUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover z-10"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent" />
 
@@ -133,8 +138,13 @@ export default function MediaDetailModal({
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-end gap-3">
               {media.posterUrl && (
-                <div className="w-16 h-24 rounded-lg overflow-hidden border-2 border-gray-900 shadow-lg shrink-0 -mb-8">
-                  <img src={media.posterUrl} alt="" className="w-full h-full object-cover" />
+                <div className="w-16 h-24 rounded-lg overflow-hidden border-2 border-gray-900 shadow-lg shrink-0 -mb-8 bg-gray-800">
+                  <img
+                    src={media.posterUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
                 </div>
               )}
               <div className="min-w-0 pb-1">

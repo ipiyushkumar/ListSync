@@ -50,16 +50,17 @@ export default function MediaGridCard({
     >
       {/* Poster */}
       <div className={`relative bg-gray-800 overflow-hidden`} style={{ aspectRatio: aspectRatio === 'square' ? '1' : '3/4' }}>
-        {item.posterUrl ? (
+        {/* Fallback — always behind the image */}
+        <div className="absolute inset-0 flex items-center justify-center z-0">
+          <span className="text-3xl font-bold text-gray-700">{item.title[0]}</span>
+        </div>
+        {item.posterUrl && (
           <img
             src={item.posterUrl}
             alt={item.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 z-10"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-600 text-3xl font-bold">
-            {item.title[0]}
-          </div>
         )}
 
         {/* Gradient overlay on hover */}
