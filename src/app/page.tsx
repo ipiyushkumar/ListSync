@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Film, BookOpen, Tv, Music, Clapperboard, Search,
@@ -241,6 +241,31 @@ export default function Dashboard() {
     return () => window.removeEventListener('click', handler);
   }, [statusMenu]);
 
+  // Quick filter state
+  const [quickFilter, setQuickFilter] = useState('');
+  const [showQuickResults, setShowQuickResults] = useState(false);
+  const quickFilterRef = useRef<HTMLDivElement>(null);
+
+  const quickFilterResults = useMemo(() => {
+    if (!quickFilter.trim()) return [];
+    const q = quickFilter.toLowerCase();
+    return media
+      .filter(m => m.title.toLowerCase().includes(q))
+      .slice(0, 6);
+  }, [quickFilter, media]);
+
+  // Close quick filter on outside click
+  useEffect(() => {
+    if (!showQuickResults) return;
+    const handler = (e: MouseEvent) => {
+      if (quickFilterRef.current && !quickFilterRef.current.contains(e.target as Node)) {
+        setShowQuickResults(false);
+      }
+    };
+    window.addEventListener('click', handler);
+    return () => window.removeEventListener('click', handler);
+  }, [showQuickResults]);
+
   if (loading) return <SkeletonDashboard />;
 
   return (
@@ -249,6 +274,46 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <h1 className="text-base font-semibold text-white tracking-tight">Dashboard</h1>
         <div className="flex items-center gap-2">
+          {/* Quick filter search */}
+          <div className="relative" ref={quickFilterRef}>
+            <div className="flex items-center gap-1.5 bg-gray-900/80 border border-gray-800/50 rounded-lg px-2.5 py-1.5">
+              <Search className="w-3 h-3 text-gray-500" />
+              <input
+                type="text"
+                value={quickFilter}
+                onChange={e => { setQuickFilter(e.target.value); setShowQuickResults(true); }}
+                onFocus={() => quickFilter.trim() && setShowQuickResults(true)}
+                placeholder="Filter library..."
+                className="bg-transparent text-xs text-gray-300 placeholder-gray-600 outline-none w-32 focus:w-48 transition-all"
+              />
+              {!quickFilter && (
+                <kbd className="px-1 py-0.5 bg-gray-800 rounded text-[10px] font-mono text-gray-500">/</kbd>
+              )}
+            </div>
+            {showQuickResults && quickFilterResults.length > 0 && (
+              <div className="absolute right-0 top-full mt-1 w-64 bg-gray-900 border border-gray-800 rounded-lg shadow-xl z-50 overflow-hidden">
+                {quickFilterResults.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => { router.push(`/media/${item.id}`); setQuickFilter(''); setShowQuickResults(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-800/50 transition-colors text-left"
+                  >
+                    {item.posterUrl ? (
+                      <img src={item.posterUrl} alt="" className="w-8 h-10 rounded object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-10 rounded bg-gray-800 flex items-center justify-center flex-shrink-0">
+                        <Film className="w-3 h-3 text-gray-600" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs text-white truncate">{item.title}</div>
+                      <div className="text-[10px] text-gray-500 capitalize">{item.category} · {item.status.replace('_', ' ')}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             onClick={pickRandom}
             className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-accent transition-colors"
@@ -260,9 +325,8 @@ export default function Dashboard() {
             href="/search"
             className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
           >
-            <Search className="w-3 h-3" />
-            <span>Search</span>
-            <kbd className="px-1 py-0.5 bg-gray-800 rounded text-[10px] font-mono text-gray-500">/</kbd>
+            <span>Add New</span>
+            <Plus className="w-3 h-3" />
           </Link>
         </div>
       </div>
