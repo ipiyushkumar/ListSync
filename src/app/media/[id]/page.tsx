@@ -183,22 +183,19 @@ export default function MediaDetailPage() {
     setIncrementing(true);
     try {
       const newEp = media.currentEp + 1;
+      const payload: Record<string, unknown> = { currentEp: newEp };
+      // Auto-complete when reaching total episodes (single request)
+      if (media.totalEpisodes && newEp >= media.totalEpisodes && media.status !== 'completed') {
+        payload.status = 'completed';
+      }
       const res = await fetch(`/api/media/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentEp: newEp }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         const updates: Partial<Media> = { currentEp: newEp };
-        // Auto-complete when reaching total episodes
-        if (media.totalEpisodes && newEp >= media.totalEpisodes && media.status !== 'completed') {
-          await fetch(`/api/media/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'completed' }),
-          });
-          updates.status = 'completed';
-        }
+        if (payload.status) updates.status = payload.status as string;
         setMedia({ ...media, ...updates });
       }
     } finally {

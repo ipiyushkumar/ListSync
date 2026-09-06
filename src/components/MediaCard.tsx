@@ -69,17 +69,19 @@ export default function MediaCard({ media, onUpdate, onDelete }: MediaCardProps)
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-purple-600/50 transition-all duration-200 group">
         {/* Poster */}
         <div className="relative aspect-[2/3] bg-gray-800 overflow-hidden">
-          {media.posterUrl ? (
-            <img
-              src={media.posterUrl}
-              alt={media.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-600 text-4xl font-bold">
+          <div className="relative w-full h-full">
+            <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-4xl font-bold z-0">
               {media.title[0]}
             </div>
-          )}
+            {media.posterUrl ? (
+              <img
+                src={media.posterUrl}
+                alt={media.title}
+                className="relative w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 z-10"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            ) : null}
+          </div>
           {/* Overlay actions */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-3">
             <div className="flex gap-2 w-full">
