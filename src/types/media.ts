@@ -1,6 +1,6 @@
 export type MediaCategory = 'anime' | 'manhwa' | 'movie' | 'tv' | 'music';
 
-export type MediaStatus = 'watching' | 'completed' | 'dropped' | 'planned' | 'on_hold';
+export type MediaStatus = 'watching' | 'completed' | 'dropped' | 'planned' | 'on_hold' | 'reading' | 'listening';
 
 export interface MediaItem {
   id: string;

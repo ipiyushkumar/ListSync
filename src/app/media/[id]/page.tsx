@@ -50,6 +50,8 @@ const STATUS_OPTIONS = [
   { value: 'on_hold', label: 'On Hold', icon: Pause, color: 'bg-yellow-600 hover:bg-yellow-700' },
   { value: 'dropped', label: 'Dropped', icon: XCircle, color: 'bg-red-600 hover:bg-red-700' },
   { value: 'planned', label: 'Planned', icon: Bookmark, color: 'bg-purple-600 hover:bg-purple-700' },
+  { value: 'reading', label: 'Reading', icon: BookOpen, color: 'bg-indigo-600 hover:bg-indigo-700' },
+  { value: 'listening', label: 'Listening', icon: Music, color: 'bg-pink-600 hover:bg-pink-700' },
 ] as const;
 
 const CATEGORY_ICONS: Record<string, typeof Film> = {
@@ -91,8 +93,11 @@ function StatusBadge({ status }: { status: string }) {
     watching: { bg: 'bg-blue-900/50', text: 'text-blue-300' },
     completed: { bg: 'bg-green-900/50', text: 'text-green-300' },
     on_hold: { bg: 'bg-yellow-900/50', text: 'text-yellow-300' },
+    'on-hold': { bg: 'bg-yellow-900/50', text: 'text-yellow-300' },
     dropped: { bg: 'bg-red-900/50', text: 'text-red-300' },
     planned: { bg: 'bg-purple-900/50', text: 'text-purple-300' },
+    reading: { bg: 'bg-indigo-900/50', text: 'text-indigo-300' },
+    listening: { bg: 'bg-pink-900/50', text: 'text-pink-300' },
   };
   const { bg, text } = config[status] || config.planned;
   return (
@@ -149,7 +154,7 @@ export default function MediaDetailPage() {
       if (res.ok) {
         router.push('/');
       } else {
-        alert('Failed to delete');
+        console.error('Failed to delete media');
       }
     } catch {
       console.error('Failed to delete media');

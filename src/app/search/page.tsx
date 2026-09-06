@@ -85,7 +85,7 @@ export default function SearchPage() {
       .then(r => r.json())
       .then(data => {
         const items = Array.isArray(data) ? data : data.items || [];
-        setLibrary(items.map((m: any) => ({
+        setLibrary(items.map((m: Record<string, unknown>) => ({
           id: m.id,
           title: m.title,
           category: m.category,
@@ -117,8 +117,8 @@ export default function SearchPage() {
       const data = await res.json();
       const raw: SearchResult[] = Array.isArray(data) ? data : data.results || data.data || [];
       setResults(raw);
-    } catch (err: any) {
-      setToast({ message: `Search failed: ${err.message}`, type: 'error' });
+    } catch (err: unknown) {
+      setToast({ message: `Search failed: ${err instanceof Error ? err.message : 'Unknown error'}`, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -157,8 +157,8 @@ export default function SearchPage() {
         const errText = await res.text().catch(() => `HTTP ${res.status}`);
         setToast({ message: `Failed to add: ${errText}`, type: 'error' });
       }
-    } catch (err: any) {
-      setToast({ message: `Add error: ${err.message}`, type: 'error' });
+    } catch (err: unknown) {
+      setToast({ message: `Add error: ${err instanceof Error ? err.message : 'Unknown error'}`, type: 'error' });
     }
   };
 
