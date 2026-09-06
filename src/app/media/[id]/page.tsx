@@ -152,7 +152,7 @@ export default function MediaDetailPage() {
         alert('Failed to delete');
       }
     } catch {
-      alert('Failed to delete');
+      console.error('Failed to delete media');
     }
   };
 
@@ -184,7 +184,17 @@ export default function MediaDetailPage() {
         body: JSON.stringify({ currentEp: newEp }),
       });
       if (res.ok) {
-        setMedia({ ...media, currentEp: newEp });
+        const updates: Partial<Media> = { currentEp: newEp };
+        // Auto-complete when reaching total episodes
+        if (media.totalEpisodes && newEp >= media.totalEpisodes && media.status !== 'completed') {
+          await fetch(`/api/media/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'completed' }),
+          });
+          updates.status = 'completed';
+        }
+        setMedia({ ...media, ...updates });
       }
     } finally {
       setIncrementing(false);
