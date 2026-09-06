@@ -35,6 +35,8 @@ const STATUS_OPTIONS = [
   { value: 'dropped', label: 'Dropped' },
   { value: 'planned', label: 'Planned' },
   { value: 'on_hold', label: 'On Hold' },
+  { value: 'reading', label: 'Reading' },
+  { value: 'listening', label: 'Listening' },
 ];
 
 export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModalProps) {
@@ -85,7 +87,7 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
       {/* Modal */}
       <div className="relative bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+        <div className="flex items-center gap-4 p-6 border-b border-gray-800">
           <div className="relative w-16 h-24 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
             {/* Fallback */}
             <div className="absolute inset-0 z-0 flex items-center justify-center text-gray-600 text-xl font-bold">
@@ -100,13 +102,13 @@ export default function MediaModal({ media, isOpen, onClose, onSave }: MediaModa
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             )}
-            <div>
-              <h2 className="text-xl font-bold text-white">{media.title}</h2>
-              {media.originalTitle && (
-                <p className="text-sm text-gray-400">{media.originalTitle}</p>
-              )}
-              <p className="text-xs text-gray-500 mt-1">{media.category}</p>
-            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-bold text-white truncate">{media.title}</h2>
+            {media.originalTitle && (
+              <p className="text-sm text-gray-400 truncate">{media.originalTitle}</p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">{media.category}</p>
           </div>
           <button
             onClick={onClose}
