@@ -151,15 +151,6 @@ export default function SearchPage() {
       .catch(() => {});
   }, []);
 
-  // Auto re-search when category filter changes (if already searched)
-  useEffect(() => {
-    if (searched && query.trim() && !loading) {
-      handleSearch();
-    }
-    // Only run on filter changes, not on handleSearch changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
-
   const isInLibrary = useCallback((item: SearchResult) => {
     const searchId = String(item.id);
     const searchSource = item.source || '';
@@ -191,6 +182,15 @@ export default function SearchPage() {
       setLoading(false);
     }
   }, [query, filter]);
+
+  // Auto re-search when category filter changes (if already searched)
+  const handleSearchRef = useRef<() => Promise<void>>(undefined);
+  handleSearchRef.current = handleSearch;
+  useEffect(() => {
+    if (searched && query.trim() && !loading) {
+      handleSearchRef.current();
+    }
+  }, [filter, searched, query, loading]);
 
   const addToLibrary = async (item: SearchResult) => {
     const title = item.title || item.name || 'Unknown';
@@ -343,7 +343,7 @@ export default function SearchPage() {
             <Search className="w-5 h-5 text-gray-600" />
           </div>
           <p className="text-sm text-gray-400 mb-1">Search across multiple sources</p>
-          <p className="text-xs text-gray-600">Anime from AniList &middot; Manhwa from AniList &middot; Movies & TV from TMDB</p>
+          <p className="text-xs text-gray-600">Anime from AniList &amp; Jikan &middot; Manhwa from AniList &middot; Movies &amp; TV from TMDB</p>
         </div>
       )}
 
