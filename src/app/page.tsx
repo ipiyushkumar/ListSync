@@ -132,6 +132,10 @@ export default function Dashboard() {
       .slice(0, 8);
   }, [media]);
 
+  const watchingItems = useMemo(() => {
+    return media.filter(m => m.status === 'watching' || m.status === 'reading' || m.status === 'listening');
+  }, [media]);
+
   const maxCategoryCount = useMemo(() => {
     return Math.max(...Object.values(stats.byCategory), 1);
   }, [stats.byCategory]);
@@ -192,6 +196,64 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Continue Watching — horizontal card strip */}
+      {watchingItems.length > 0 && (
+        <div className="bg-gray-900/50 border border-gray-800/50 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xs font-medium text-gray-400">Continue Watching</h2>
+            <span className="text-[10px] font-mono text-gray-600">{watchingItems.length} items</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {watchingItems.map(item => {
+              const catMeta = CATEGORY_META[item.category] || { icon: Clapperboard, label: item.category };
+              const CatIcon = catMeta.icon;
+              const pct = item.totalEpisodes ? Math.round(((item.currentEp || 0) / item.totalEpisodes) * 100) : 0;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => router.push(`/media/${item.id}`)}
+                  className="flex-shrink-0 w-48 bg-gray-800/50 border border-gray-700/30 rounded-lg p-3 hover:border-accent/30 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-10 h-14 rounded overflow-hidden bg-gray-700 shrink-0 relative">
+                      {item.posterUrl ? (
+                        <>
+                          <div className="absolute inset-0 flex items-center justify-center z-0">
+                            <CatIcon className="w-3 h-3 text-gray-600" />
+                          </div>
+                          <img
+                            src={item.posterUrl}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover z-10"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <CatIcon className="w-3 h-3 text-gray-600" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-white font-medium leading-snug line-clamp-2">{item.title}</div>
+                      <div className="text-[10px] text-gray-500 mt-0.5 font-mono">
+                        {item.currentEp || 0}/{item.totalEpisodes || '?'} episodes
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                      <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="text-[10px] text-gray-600 mt-1 text-right font-mono">{pct}%</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Category breakdown + Status overview — side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
