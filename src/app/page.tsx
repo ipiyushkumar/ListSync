@@ -165,6 +165,26 @@ export default function Dashboard() {
     }
   }, []);
 
+  const [statusMenu, setStatusMenu] = useState<string | null>(null);
+
+  const changeStatus = useCallback(async (e: React.MouseEvent, item: MediaItem, newStatus: string) => {
+    e.stopPropagation();
+    setStatusMenu(null);
+    if (newStatus === item.status) return;
+    const oldStatus = item.status;
+    setMedia(prev => prev.map(m => m.id === item.id ? { ...m, status: newStatus } : m));
+    try {
+      const res = await fetch(`/api/media/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error('Failed');
+    } catch {
+      setMedia(prev => prev.map(m => m.id === item.id ? { ...m, status: oldStatus } : m));
+    }
+  }, []);
+
   const pickRandom = useCallback(() => {
     const candidates = media.filter(m =>
       m.status === 'planned' || m.status === 'watching' || m.status === 'on_hold' || m.status === 'on-hold'
@@ -177,6 +197,14 @@ export default function Dashboard() {
   const maxCategoryCount = useMemo(() => {
     return Math.max(...Object.values(stats.byCategory), 1);
   }, [stats.byCategory]);
+
+  // Close status menu on outside click
+  useEffect(() => {
+    if (!statusMenu) return;
+    const handler = () => setStatusMenu(null);
+    window.addEventListener('click', handler);
+    return () => window.removeEventListener('click', handler);
+  }, [statusMenu]);
 
   if (loading) return <SkeletonDashboard />;
 
@@ -479,10 +507,33 @@ export default function Dashboard() {
                       <td className="px-4 py-2.5">
                         <span className="text-[11px] text-gray-500 capitalize">{catMeta.label}</span>
                       </td>
-                      <td className="px-4 py-2.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`w-1.5 h-1.5 rounded-full ${statusMeta.dot}`} />
-                          <span className="text-[11px] text-gray-400 capitalize">{item.status.replace(/_/g, '-')}</span>
+                      <td className="px-4 py-2.5 relative">
+                        <div className="relative">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setStatusMenu(statusMenu === item.id ? null : item.id); }}
+                            className="flex items-center gap-1.5 hover:bg-gray-800/50 rounded px-1 py-0.5 transition-colors"
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${statusMeta.dot}`} />
+                            <span className="text-[11px] text-gray-400 capitalize">{item.status.replace(/_/g, '-')}</span>
+                          </button>
+                          {statusMenu === item.id && (
+                            <div className="absolute z-50 top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[120px]">
+                              {Object.keys(STATUS_META).filter(s => !['on_hold', 'on-hold'].includes(s) || s === item.status?.replace('_', '-')).map(s => {
+                                const sm = STATUS_META[s];
+                                return (
+                                  <button
+                                    key={s}
+                                    onClick={(e) => changeStatus(e, item, s)}
+                                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-[11px] hover:bg-gray-700/50 transition-colors ${s === item.status ? 'text-accent' : 'text-gray-400'}`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${sm.dot}`} />
+                                    <span className="capitalize">{s.replace(/_/g, '-')}</span>
+                                    {s === item.status && <span className="ml-auto text-accent text-[9px]">current</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-2.5 text-right">
