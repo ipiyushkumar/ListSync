@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Film, BookOpen, Tv, Music, Clapperboard, Search,
   ArrowRight, Star, Clock, CheckCircle2, Eye, Pause, Ban,
-  TrendingUp, BarChart3,
+  TrendingUp, BarChart3, Plus,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
@@ -136,6 +136,28 @@ export default function Dashboard() {
     return media.filter(m => m.status === 'watching' || m.status === 'reading' || m.status === 'listening');
   }, [media]);
 
+  const incrementEpisode = useCallback(async (e: React.MouseEvent, item: MediaItem) => {
+    e.stopPropagation();
+    const newEp = (item.currentEp || 0) + 1;
+    const cap = item.totalEpisodes || Infinity;
+    if (newEp > cap) return;
+    const newStatus = newEp >= cap ? 'completed' : item.status;
+    setMedia(prev => prev.map(m =>
+      m.id === item.id ? { ...m, currentEp: newEp, status: newStatus } : m
+    ));
+    try {
+      await fetch(`/api/media/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentEp: newEp, status: newStatus }),
+      });
+    } catch {
+      setMedia(prev => prev.map(m =>
+        m.id === item.id ? { ...m, currentEp: item.currentEp, status: item.status } : m
+      ));
+    }
+  }, []);
+
   const maxCategoryCount = useMemo(() => {
     return Math.max(...Object.values(stats.byCategory), 1);
   }, [stats.byCategory]);
@@ -242,11 +264,20 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-2">
-                    <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex-1">
+                      <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-accent rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="text-[10px] text-gray-600 mt-1 text-right font-mono">{pct}%</div>
                     </div>
-                    <div className="text-[10px] text-gray-600 mt-1 text-right font-mono">{pct}%</div>
+                    <button
+                      onClick={(e) => incrementEpisode(e, item)}
+                      className="shrink-0 w-6 h-6 rounded bg-accent/10 hover:bg-accent/20 flex items-center justify-center transition-colors"
+                      title="+1 Episode"
+                    >
+                      <Plus className="w-3 h-3 text-accent" />
+                    </button>
                   </div>
                 </div>
               );
