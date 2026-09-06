@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Key, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, Tv, Music, X } from 'lucide-react';
+import { Key, Bot, ScanSearch, Palette, Moon, Puzzle, Radio, Zap, Eye, EyeOff, Tv, Music, X, Link2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /* ─────────────────────────── Types ─────────────────────────── */
@@ -272,7 +272,7 @@ export default function SettingsPage() {
       </SectionCard>
 
       {/* ────────── 2. Integrations ────────── */}
-      <SectionCard icon={Link} title="Integrations" description="Connect your favorite platforms to sync watch/listen history">
+      <SectionCard icon={Link2} title="Integrations" description="Connect your favorite platforms to sync watch/listen history">
         <div className="divide-y divide-gray-800/60">
           {connectors.map((conn) => (
             <div key={conn.name} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
