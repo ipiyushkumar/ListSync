@@ -7,7 +7,7 @@ import type { LucideIcon } from 'lucide-react';
 /* ─────────────────────────── Types ─────────────────────────── */
 
 interface Settings {
-  apiKeys: { tmdb: string; anilist: string };
+  apiKeys: { tmdb: string };
   ai: { provider: string; apiKey: string; model: string };
   autoDetection: { socketPort: number; socketEnabled: boolean };
   appearance: { theme: string; accentColor: string };

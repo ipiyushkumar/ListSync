@@ -35,36 +35,45 @@ export async function GET() {
 
 // POST /api/connectors — toggle a connector on/off
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { name, isActive, config } = body;
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+  const { name, isActive, config } = body as { name?: string; isActive?: boolean; config?: Record<string, unknown> };
 
   if (!name) {
     return NextResponse.json({ error: 'Connector name required' }, { status: 400 });
   }
 
-  const existing = await prisma.connector.findFirst({ where: { name } });
+  try {
+    const existing = await prisma.connector.findFirst({ where: { name } });
 
-  let connector;
-  if (existing) {
-    connector = await prisma.connector.update({
-      where: { id: existing.id },
-      data: {
-        isActive,
-        config: config != null ? JSON.stringify(config) : existing.config,
-      },
-    });
-  } else {
-    const avail = AVAILABLE_CONNECTORS.find((c) => c.name === name);
-    connector = await prisma.connector.create({
-      data: {
-        name,
-        type: avail?.type || 'watch',
-        authType: avail?.authType || 'oauth',
-        isActive,
-        config: config ? JSON.stringify(config) : null,
-      },
-    });
+    let connector;
+    if (existing) {
+      connector = await prisma.connector.update({
+        where: { id: existing.id },
+        data: {
+          isActive: Boolean(isActive),
+          config: config != null ? JSON.stringify(config) : existing.config,
+        },
+      });
+    } else {
+      const avail = AVAILABLE_CONNECTORS.find((c) => c.name === name);
+      connector = await prisma.connector.create({
+        data: {
+          name,
+          type: avail?.type || 'watch',
+          authType: avail?.authType || 'oauth',
+          isActive: Boolean(isActive),
+          config: config ? JSON.stringify(config) : null,
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true, connector });
+  } catch (error) {
+    return NextResponse.json({ error: 'Database error', detail: String(error) }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true, connector });
 }

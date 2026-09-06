@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma';
 
 const DEFAULT_SETTINGS: Record<string, string> = {
   'apiKeys.tmdb': '',
-  'apiKeys.anilist': '',
   'ai.provider': 'openai',
   'ai.apiKey': '',
   'ai.model': 'gpt-4',
@@ -31,7 +30,6 @@ function buildResponse(settings: Record<string, string>) {
   return {
     apiKeys: {
       tmdb: maskKey(settings['apiKeys.tmdb']),
-      anilist: maskKey(settings['apiKeys.anilist']),
     },
     ai: {
       provider: settings['ai.provider'],
@@ -57,21 +55,22 @@ export async function GET() {
 
 // POST /api/settings — merges partial update, only overwrites keys if non-empty
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const current = await getAllSettings();
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
 
   const MASK = '••••••••';
+  const isMasked = (v: string) => v === MASK || v.includes('•') || v.includes('\u2022');
 
   const updates: Array<{ key: string; value: string }> = [];
 
   // API keys — only update if non-empty and not masked
-  // Detect any masked value: contains bullet chars or is the placeholder mask
-  const isMasked = (v: string) => v === MASK || v.includes('•') || v.includes('\u2022');
-  const tmdb = body.apiKeys?.tmdb;
-  if (tmdb && !isMasked(tmdb)) updates.push({ key: 'apiKeys.tmdb', value: tmdb });
-
-  const anilist = body.apiKeys?.anilist;
-  if (anilist && !isMasked(anilist)) updates.push({ key: 'apiKeys.anilist', value: anilist });
+  const tmdb = body.apiKeys as Record<string, unknown> | undefined;
+  const tmdbVal = tmdb?.tmdb;
+  if (typeof tmdbVal === 'string' && tmdbVal && !isMasked(tmdbVal)) updates.push({ key: 'apiKeys.tmdb', value: tmdbVal });
 
   // AI settings
   if (body.ai?.provider) updates.push({ key: 'ai.provider', value: body.ai.provider });
@@ -92,12 +91,16 @@ export async function POST(request: NextRequest) {
   if (body.appearance?.accentColor) updates.push({ key: 'appearance.accentColor', value: body.appearance.accentColor });
 
   // Upsert each setting
-  for (const u of updates) {
-    await prisma.setting.upsert({
-      where: { key: u.key },
-      update: { value: u.value },
-      create: { key: u.key, value: u.value, category: u.key.split('.')[0] },
-    });
+  try {
+    for (const u of updates) {
+      await prisma.setting.upsert({
+        where: { key: u.key },
+        update: { value: u.value },
+        create: { key: u.key, value: u.value, category: u.key.split('.')[0] },
+      });
+    }
+  } catch (error) {
+    return NextResponse.json({ error: 'Database error', detail: String(error) }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });
