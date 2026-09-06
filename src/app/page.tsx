@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Film, BookOpen, Tv, Music, Clapperboard, Search,
   ArrowRight, Star, Clock, CheckCircle2, Eye, Pause, Ban,
-  TrendingUp, BarChart3, Plus,
+  TrendingUp, BarChart3, Plus, Dices,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
@@ -158,6 +158,15 @@ export default function Dashboard() {
     }
   }, []);
 
+  const pickRandom = useCallback(() => {
+    const candidates = media.filter(m =>
+      m.status === 'planned' || m.status === 'watching' || m.status === 'on_hold' || m.status === 'on-hold'
+    );
+    if (candidates.length === 0) return;
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    router.push(`/media/${pick.id}`);
+  }, [media, router]);
+
   const maxCategoryCount = useMemo(() => {
     return Math.max(...Object.values(stats.byCategory), 1);
   }, [stats.byCategory]);
@@ -169,14 +178,23 @@ export default function Dashboard() {
       {/* Page header — compact */}
       <div className="flex items-center justify-between">
         <h1 className="text-base font-semibold text-white tracking-tight">Dashboard</h1>
-        <Link
-          href="/search"
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
-        >
-          <Search className="w-3 h-3" />
-          <span>Search</span>
-          <kbd className="px-1 py-0.5 bg-gray-800 rounded text-[10px] font-mono text-gray-500">/</kbd>
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={pickRandom}
+            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-accent transition-colors"
+          >
+            <Dices className="w-3 h-3" />
+            <span>Surprise Me</span>
+          </button>
+          <Link
+            href="/search"
+            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+          >
+            <Search className="w-3 h-3" />
+            <span>Search</span>
+            <kbd className="px-1 py-0.5 bg-gray-800 rounded text-[10px] font-mono text-gray-500">/</kbd>
+          </Link>
+        </div>
       </div>
 
       {/* Metric strip — hero + supports */}
