@@ -25,9 +25,15 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Normalize status to DB canonical form (on-hold → on_hold)
+function normalizeStatus(s: string): string {
+  return s === 'on-hold' ? 'on_hold' : s;
+}
+
 // POST /api/media
 export async function POST(request: NextRequest) {
   const body = await request.json();
+  if (body.status) body.status = normalizeStatus(body.status);
 
   // Check for existing entry by externalId (if provided) or by title+category
   let existing = null;

@@ -32,6 +32,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         data[field] = body[field];
       }
     }
+    // Normalize status to DB canonical form
+    if (typeof data.status === 'string') {
+      data.status = data.status === 'on-hold' ? 'on_hold' : data.status;
+    }
 
     const media = await prisma.media.update({ where: { id }, data });
     return NextResponse.json(media);
