@@ -32,7 +32,12 @@ function normalizeStatus(s: string): string {
 
 // POST /api/media
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
   if (body.status) body.status = normalizeStatus(body.status);
 
   // Check for existing entry by externalId (if provided) or by title+category

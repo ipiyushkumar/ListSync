@@ -79,6 +79,18 @@ export default function SearchPage() {
   const [searched, setSearched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // ESC key to clear search input
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && query) {
+        setQuery('');
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [query]);
+
   // Fetch library to detect duplicates
   useEffect(() => {
     fetch('/api/media')

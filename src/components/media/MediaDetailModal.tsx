@@ -8,6 +8,11 @@ import type { Media } from './MediaGridCard';
 
 const STATUS_OPTIONS = ['watching', 'reading', 'listening', 'completed', 'planned', 'dropped', 'on-hold'] as const;
 
+// Normalize DB status (on_hold) to UI status (on-hold) for comparison
+function toUiStatus(s: string): string {
+  return s === 'on_hold' ? 'on-hold' : s;
+}
+
 export default function MediaDetailModal({
   media,
   onClose,
@@ -25,7 +30,7 @@ export default function MediaDetailModal({
   incrementLabel?: string;
   decrementLabel?: string;
 }) {
-  const [editStatus, setEditStatus] = useState(media.status);
+  const [editStatus, setEditStatus] = useState(toUiStatus(media.status));
   const [editEp, setEditEp] = useState(media.currentEp);
   const [showDesc, setShowDesc] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -33,7 +38,7 @@ export default function MediaDetailModal({
 
   // Reset state when a different media item opens
   useEffect(() => {
-    setEditStatus(media.status);
+    setEditStatus(toUiStatus(media.status));
     setEditEp(media.currentEp);
     setDeleting(false);
   }, [media.id, media.status, media.currentEp]);
@@ -41,7 +46,7 @@ export default function MediaDetailModal({
   const genres = parseGenres(media.genres);
   const platforms = parseGenres(media.platforms);
 
-  const hasChanges = editStatus !== media.status || editEp !== media.currentEp;
+  const hasChanges = editStatus !== toUiStatus(media.status) || editEp !== media.currentEp;
 
   const handleSave = useCallback(async () => {
     setSaving(true);
