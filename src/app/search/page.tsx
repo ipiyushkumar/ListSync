@@ -79,11 +79,13 @@ export default function SearchPage() {
   const [searched, setSearched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // ESC key to clear search input
+  // ESC key to clear search input and results
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && query) {
         setQuery('');
+        setResults([]);
+        setSearched(false);
         inputRef.current?.focus();
       }
     };
@@ -108,6 +110,15 @@ export default function SearchPage() {
       .catch(() => {});
   }, []);
 
+  // Auto re-search when category filter changes (if already searched)
+  useEffect(() => {
+    if (searched && query.trim() && !loading) {
+      handleSearch();
+    }
+    // Only run on filter changes, not on handleSearch changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
+
   const isInLibrary = useCallback((item: SearchResult) => {
     const searchId = String(item.id);
     const searchSource = item.source || '';
@@ -126,6 +137,10 @@ export default function SearchPage() {
     try {
       const url = `/api/search?q=${encodeURIComponent(q)}${filter !== 'all' ? `&category=${filter}` : ''}`;
       const res = await fetch(url);
+      if (!res.ok) {
+        setToast({ message: `Search failed: HTTP ${res.status}`, type: 'error' });
+        return;
+      }
       const data = await res.json();
       const raw: SearchResult[] = Array.isArray(data) ? data : data.results || data.data || [];
       setResults(raw);
