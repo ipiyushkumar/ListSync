@@ -55,9 +55,9 @@ export async function GET() {
 
 // POST /api/settings — merges partial update, only overwrites keys if non-empty
 export async function POST(request: NextRequest) {
-  let body: Record<string, unknown>;
+  let raw: Record<string, unknown>;
   try {
-    body = await request.json();
+    raw = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
@@ -67,28 +67,33 @@ export async function POST(request: NextRequest) {
 
   const updates: Array<{ key: string; value: string }> = [];
 
+  // Type-safe extraction from nested body
+  const apiKeys = (raw.apiKeys || {}) as Record<string, unknown>;
+  const ai = (raw.ai || {}) as Record<string, unknown>;
+  const autoDetection = (raw.autoDetection || {}) as Record<string, unknown>;
+  const appearance = (raw.appearance || {}) as Record<string, unknown>;
+
   // API keys — only update if non-empty and not masked
-  const tmdb = body.apiKeys as Record<string, unknown> | undefined;
-  const tmdbVal = tmdb?.tmdb;
-  if (typeof tmdbVal === 'string' && tmdbVal && !isMasked(tmdbVal)) updates.push({ key: 'apiKeys.tmdb', value: tmdbVal });
+  if (typeof apiKeys.tmdb === 'string' && apiKeys.tmdb && !isMasked(apiKeys.tmdb)) {
+    updates.push({ key: 'apiKeys.tmdb', value: apiKeys.tmdb });
+  }
 
   // AI settings
-  if (body.ai?.provider) updates.push({ key: 'ai.provider', value: body.ai.provider });
-  const aiKey = body.ai?.apiKey;
-  if (aiKey && !isMasked(aiKey)) updates.push({ key: 'ai.apiKey', value: aiKey });
-  if (body.ai?.model) updates.push({ key: 'ai.model', value: body.ai.model });
+  if (typeof ai.provider === 'string' && ai.provider) updates.push({ key: 'ai.provider', value: ai.provider });
+  if (typeof ai.apiKey === 'string' && ai.apiKey && !isMasked(ai.apiKey)) updates.push({ key: 'ai.apiKey', value: ai.apiKey });
+  if (typeof ai.model === 'string' && ai.model) updates.push({ key: 'ai.model', value: ai.model });
 
   // Auto-detection
-  if (body.autoDetection?.socketPort != null) {
-    updates.push({ key: 'autoDetection.socketPort', value: String(body.autoDetection.socketPort) });
+  if (autoDetection.socketPort != null) {
+    updates.push({ key: 'autoDetection.socketPort', value: String(autoDetection.socketPort) });
   }
-  if (body.autoDetection?.socketEnabled != null) {
-    updates.push({ key: 'autoDetection.socketEnabled', value: String(body.autoDetection.socketEnabled) });
+  if (autoDetection.socketEnabled != null) {
+    updates.push({ key: 'autoDetection.socketEnabled', value: String(autoDetection.socketEnabled) });
   }
 
   // Appearance
-  if (body.appearance?.theme) updates.push({ key: 'appearance.theme', value: body.appearance.theme });
-  if (body.appearance?.accentColor) updates.push({ key: 'appearance.accentColor', value: body.appearance.accentColor });
+  if (typeof appearance.theme === 'string' && appearance.theme) updates.push({ key: 'appearance.theme', value: appearance.theme });
+  if (typeof appearance.accentColor === 'string' && appearance.accentColor) updates.push({ key: 'appearance.accentColor', value: appearance.accentColor });
 
   // Upsert each setting
   try {
