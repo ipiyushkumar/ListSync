@@ -184,15 +184,26 @@ export default function SettingsPage() {
     }
   };
 
-  /* ── Test AI connection ───────────────────────────────────── */
-  const handleTestConnection = async () => {
+  /* ── Test TMDB API key ───────────────────────────────────── */
+  const handleTestTMDB = async () => {
+    if (!settings) return;
+    const key = settings.apiKeys.tmdb?.trim();
+    if (!key) {
+      showToast('error', 'Enter a TMDB API key first');
+      return;
+    }
     setTesting(true);
     try {
-      // Simulate test — in production this would call the provider
-      await new Promise((r) => setTimeout(r, 1500));
-      showToast('success', `Connected to ${currentProvider.label} successfully`);
+      const res = await fetch(`https://api.themoviedb.org/3/configuration?api_key=${encodeURIComponent(key)}`);
+      if (res.ok) {
+        showToast('success', 'TMDB API key is valid');
+      } else if (res.status === 401) {
+        showToast('error', 'TMDB API key is invalid');
+      } else {
+        showToast('error', `TMDB returned HTTP ${res.status}`);
+      }
     } catch {
-      showToast('error', `Failed to connect to ${currentProvider.label}`);
+      showToast('error', 'Could not reach TMDB API');
     } finally {
       setTesting(false);
     }
@@ -233,7 +244,23 @@ export default function SettingsPage() {
 
       {/* ────────── 1. API Keys ────────── */}
       <SectionCard icon={Key} title="API Keys" description="Required keys for media metadata fetching">
-        <KeyInput label="TMDB API Key" value={settings.apiKeys.tmdb} placeholder="v3 authenticated key" onChange={(v) => updateApiKey('tmdb', v)} />
+        <div className="flex gap-3 items-end">
+          <div className="flex-1">
+            <KeyInput label="TMDB API Key" value={settings.apiKeys.tmdb} placeholder="v3 authenticated key" onChange={(v) => updateApiKey('tmdb', v)} />
+          </div>
+          <button
+            onClick={handleTestTMDB}
+            disabled={testing || !settings.apiKeys.tmdb?.trim()}
+            className="h-[42px] px-4 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 text-sm font-medium rounded-xl transition-colors flex items-center gap-2 whitespace-nowrap"
+          >
+            {testing ? (
+              <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-gray-500 border-t-purple-400" />
+            ) : (
+              <Zap className="w-3.5 h-3.5" />
+            )}
+            Test Key
+          </button>
+        </div>
         <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
           <p className="text-xs text-gray-500 leading-relaxed">
             API keys are stored locally in SQLite and never leave your server.
@@ -287,24 +314,6 @@ export default function SettingsPage() {
             </p>
           </div>
         )}
-
-        <button
-          onClick={handleTestConnection}
-          disabled={testing}
-          className="w-full sm:w-auto px-6 py-2.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
-        >
-          {testing ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-500 border-t-purple-400" />
-              Testing…
-            </>
-          ) : (
-            <>
-              <Zap className="w-4 h-4" />
-              Test Connection
-            </>
-          )}
-        </button>
       </SectionCard>
 
       {/* ────────── 3. Auto-Detection ────────── */}
