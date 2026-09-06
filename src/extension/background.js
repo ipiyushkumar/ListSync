@@ -46,6 +46,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === 'ADD_TO_WATCHLIST') {
     addToWatchlist(message.payload);
+    sendToBackend(message.payload);
     sendResponse({ status: 'ok' });
     return true;
   }
