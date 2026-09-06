@@ -1,6 +1,6 @@
 // ListSync Media Detector - Background Service Worker
 
-const BACKEND_URL = 'http://localhost:3085/api/activity';
+const BACKEND_URL = 'http://localhost:3085/api/media';
 const ALARM_NAME = 'listsync-check-tab';
 const CHECK_INTERVAL_MINUTES = 0.5; // 30 seconds
 
@@ -85,10 +85,20 @@ async function handleMediaDetected(mediaInfo, tab) {
 
 async function sendToBackend(mediaInfo) {
   try {
+    // Map extension detection data to /api/media POST format
+    const categoryMap = { show: 'tv', manga: 'manhwa', unknown: 'anime' };
+    const payload = {
+      title: mediaInfo.title,
+      category: categoryMap[mediaInfo.category] || mediaInfo.category || 'anime',
+      status: 'watching',
+      currentEp: mediaInfo.episode || 0,
+      platforms: mediaInfo.platform ? [mediaInfo.platform] : [],
+    };
+
     const response = await fetch(BACKEND_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(mediaInfo)
+      body: JSON.stringify(payload)
     });
 
     if (response.ok) {
@@ -110,7 +120,7 @@ async function sendToBackend(mediaInfo) {
 
 async function checkBackendReachability() {
   try {
-    const resp = await fetch('http://localhost:3085/api/health', { method: 'GET' });
+    const resp = await fetch('http://localhost:3085/api/stats', { method: 'GET' });
     const reachable = resp.ok;
     await chrome.storage.local.set({ backendReachable: reachable });
     return reachable;
