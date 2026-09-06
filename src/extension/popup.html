@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ListSync</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-row">
+        <span class="logo-icon">📋</span>
+        <h1 class="logo-text">ListSync</h1>
+      </div>
+      <div class="status-row">
+        <span id="status-dot" class="status-dot offline" title="Backend status"></span>
+        <span id="status-label" class="status-label">Checking…</span>
+      </div>
+    </header>
+
+    <!-- Current Media -->
+    <section id="media-section" class="media-section">
+      <p class="section-title">Now Detected</p>
+      <div id="media-card" class="media-card hidden">
+        <div class="media-platform">
+          <span id="media-platform-badge" class="platform-badge">—</span>
+        </div>
+        <h2 id="media-title" class="media-title">—</h2>
+        <p id="media-episode" class="media-episode"></p>
+        <p id="media-url" class="media-url"></p>
+      </div>
+      <div id="media-empty" class="media-empty">
+        <p>No media detected yet.</p>
+        <p class="hint">Visit a streaming site to start tracking.</p>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <section class="actions">
+      <button id="btn-add" class="btn btn-primary" disabled>
+        ＋ Add to Watchlist
+      </button>
+      <a id="btn-dashboard" href="http://localhost:3085" target="_blank" class="btn btn-secondary">
+        Open Dashboard ↗
+      </a>
+    </section>
+
+    <!-- Stats -->
+    <footer class="footer">
+      <span id="stat-detected">0 detected</span>
+      <span class="dot-sep">·</span>
+      <span id="stat-sent">0 sent</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

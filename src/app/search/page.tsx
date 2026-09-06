@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Search, Star, Tv, BookOpen, Calendar, FileText } from 'lucide-react';
 
 interface SearchResult {
   id: number | string;
@@ -113,7 +114,7 @@ export default function SearchPage() {
         </div>
       ) : results.length === 0 ? (
         <div className="text-center py-20 text-gray-500">
-          <span className="text-6xl mb-4 block">🔍</span>
+          <Search className="w-16 h-16 mx-auto mb-4" />
           <p className="text-xl">Search for your favorite media</p>
           <p className="text-sm mt-2">Results from Jikan, AniList, and TMDB</p>
         </div>
@@ -125,7 +126,9 @@ export default function SearchPage() {
                 {item.image ? (
                   <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-purple-600 to-blue-600">📄</div>
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-600">
+                    <FileText className="w-12 h-12 text-white/50" />
+                  </div>
                 )}
                 <span className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium ${categoryColors[item.category] || 'bg-gray-500/20 text-gray-400'}`}>
                   {item.category === 'tv' ? 'TV Show' : item.category.charAt(0).toUpperCase() + item.category.slice(1)}
@@ -135,10 +138,26 @@ export default function SearchPage() {
                 <h3 className="text-white font-semibold truncate">{item.title}</h3>
                 <p className="text-gray-400 text-sm mt-1 line-clamp-2">{item.description || 'No description available'}</p>
                 <div className="flex items-center gap-3 mt-3 text-sm text-gray-500">
-                  {item.score && <span>⭐ {item.score}</span>}
-                  {item.episodes && <span>📺 {item.episodes} eps</span>}
-                  {item.chapters && <span>📖 {item.chapters} ch</span>}
-                  {item.year && <span>📅 {item.year}</span>}
+                  {item.score && (
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 text-yellow-400 fill-current" /> {item.score}
+                    </span>
+                  )}
+                  {item.episodes && (
+                    <span className="flex items-center gap-1">
+                      <Tv className="w-3.5 h-3.5" /> {item.episodes} eps
+                    </span>
+                  )}
+                  {item.chapters && (
+                    <span className="flex items-center gap-1">
+                      <BookOpen className="w-3.5 h-3.5" /> {item.chapters} ch
+                    </span>
+                  )}
+                  {item.year && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5" /> {item.year}
+                    </span>
+                  )}
                 </div>
                 {item.genres && item.genres.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">

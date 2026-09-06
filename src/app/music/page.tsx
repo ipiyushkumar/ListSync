@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Music, Star } from 'lucide-react';
 
 interface Media {
   id: string;
@@ -82,8 +83,8 @@ function MediaCard({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl">
-            🎵
+          <div className="w-full h-full flex items-center justify-center">
+            <Music className="w-10 h-10 text-gray-600" />
           </div>
         )}
         <div className="absolute top-2 right-2">
@@ -103,7 +104,7 @@ function MediaCard({
 
         {item.rating != null && (
           <div className="flex items-center gap-1 mt-1">
-            <span className="text-yellow-400">★</span>
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <span className="text-sm text-gray-300">{item.rating.toFixed(1)}</span>
           </div>
         )}
@@ -264,7 +265,7 @@ export default function MusicPage() {
       <header className="border-b border-gray-800 bg-gray-950/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">🎵</span>
+            <Music className="w-8 h-8" />
             <div>
               <h1 className="text-2xl font-bold text-white">Music</h1>
               <p className="text-sm text-gray-400">Your music collection and listening history</p>
@@ -307,7 +308,7 @@ export default function MusicPage() {
           </div>
         ) : media.length === 0 ? (
           <div className="text-center py-20">
-            <span className="text-6xl">🎵</span>
+            <Music className="w-16 h-16 text-gray-600" />
             <p className="text-gray-400 mt-4 text-lg">No music found</p>
             <p className="text-gray-500 mt-1">Add some albums or playlists to your list</p>
           </div>
