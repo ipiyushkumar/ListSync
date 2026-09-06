@@ -13,6 +13,7 @@
     const host = window.location.hostname;
     if (host.includes('netflix.com')) return 'netflix';
     if (host.includes('crunchyroll.com')) return 'crunchyroll';
+    if (host.includes('music.youtube.com')) return 'youtube_music';
     if (host.includes('youtube.com')) return 'youtube';
     if (host.includes('spotify.com')) return 'spotify';
     if (host.includes('myanimelist.net')) return 'mal';
@@ -55,7 +56,7 @@
         if (seMatch) episode = parseInt(seMatch[2], 10);
       }
 
-      return { title, episode, category: 'anime' };
+      return { title, episode, category: 'tv' };
     },
 
     crunchyroll() {
@@ -137,6 +138,31 @@
       };
     },
 
+    youtube_music() {
+      let title = null;
+      let artist = null;
+
+      // YouTube Music uses different selectors than regular YouTube
+      const songEl = document.querySelector('yt-formatted-string.title, .song-title, [class*="song-title"]');
+      if (songEl) title = songEl.textContent.trim();
+
+      const artistEl = document.querySelector('.byline-wrapper a, [class*="artist"] a, yt-formatted-string.byline');
+      if (artistEl) artist = artistEl.textContent.trim();
+
+      if (!title) {
+        const meta = document.querySelector('meta[property="og:title"]');
+        if (meta) title = meta.getAttribute('content');
+      }
+      if (!title) title = document.title.replace(' - YouTube Music', '').trim();
+
+      return {
+        title: artist ? `${artist} - ${title}` : title,
+        artist,
+        episode: null,
+        category: 'music'
+      };
+    },
+
     mal() {
       let title = null;
       let episode = null;
@@ -211,9 +237,9 @@
     const movieKeywords = ['movie', 'film', 'cinema', 'watch'];
     const showKeywords = ['series', 'season', 'episode', 'show', 'netflix'];
 
-    if (platform === 'spotify') return 'music';
+    if (platform === 'spotify' || platform === 'youtube_music') return 'music';
     if (platform === 'crunchyroll' || platform === 'mal' || platform === 'anilist') return 'anime';
-    if (platform === 'netflix') return 'show';
+    if (platform === 'netflix') return 'tv';
 
     if (animeKeywords.some((k) => lower.includes(k))) return 'anime';
     if (mangaKeywords.some((k) => lower.includes(k))) return 'manga';

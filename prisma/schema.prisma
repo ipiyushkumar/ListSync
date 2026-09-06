@@ -18,7 +18,7 @@ model Media {
   totalEpisodes Int?
   currentEp     Int      @default(0)
   rating        Float?
-  status        String   @default("planned") // watching, completed, dropped, planned, on_hold
+  status        String   @default("planned") // watching, completed, dropped, planned, on_hold, reading, listening
   genres        String?  // JSON array stored as string
   platforms     String?  // JSON array stored as string
   externalId    String?  // ID from external API (MAL, AniList, TMDB, etc.)

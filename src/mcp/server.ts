@@ -204,7 +204,7 @@ server.tool(
   'Log a watch/read/listen activity for a media item',
   {
     mediaId: z.string().describe('Media item ID'),
-    action: z.enum(['watched', 'read', 'listened']).describe('Activity type'),
+    action: z.enum(['started', 'paused', 'completed', 'episode_watched', 'watched', 'read', 'listened']).describe('Activity type'),
     episode: z.number().optional().describe('Episode/chapter number'),
     source: z.enum(['manual', 'auto', 'extension']).default('manual'),
   },
