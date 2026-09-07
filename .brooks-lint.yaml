@@ -1,0 +1,25 @@
+version: 1
+strictness: balanced
+
+# Disable test-related risks until test suite is mature
+disable:
+  - T2  # Test Brittleness - no tests yet
+  - T3  # Test Duplication - no tests yet
+  - T4  # Mock Abuse - no tests yet
+
+# Severity overrides
+severity:
+  R3: critical  # Knowledge duplication is critical
+  T5: critical  # Coverage illusion is critical
+
+# Ignore patterns
+ignore:
+  - "node_modules/**"
+  - ".next/**"
+  - "prisma/migrations/**"
+  - "*.config.*"
+  - "*.lock"
+
+# Sweep settings
+sweep:
+  max_iterations: 3

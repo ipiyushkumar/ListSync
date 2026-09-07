@@ -7,22 +7,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
-
-/* ──────── Types ──────── */
-
-interface MediaItem {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  posterUrl: string | null;
-  currentEp: number;
-  totalEpisodes: number | null;
-  rating: number | null;
-  genres: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import { MediaItem } from '@/lib/types';
+import { getCategoryMeta, getStatusMeta, normalizeStatus } from '@/lib/constants';
 
 /* ──────── Constants ──────── */
 
@@ -45,12 +31,6 @@ const STATUS_META: Record<string, { label: string; color: string }> = {
 };
 
 const RATING_BUCKETS = ['1-2', '3-4', '5-6', '7-8', '9-10'];
-
-/* ──────── Helper ──────── */
-
-function normalizeStatus(s: string): string {
-  return s === 'on-hold' ? 'on_hold' : s;
-}
 
 /* ──────── Page ──────── */
 
@@ -181,7 +161,7 @@ export default function StatsPage() {
 
     return {
       total, byCategory, byStatus, totalEpisodesWatched, estimatedHours,
-      completionRate, avgRating, ratingBuckets, topRated, recentAdded, categoryProgress,
+      completionRate, avgRating, ratingBuckets, maxRatingBucket, topRated, recentAdded, categoryProgress,
       timeBreakdown, totalTimeHours, totalDays,
       genreCounts, topGenres, maxGenreCount, totalGenres, genreByCategory, genreAvgRating,
     };

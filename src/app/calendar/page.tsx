@@ -3,14 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Film, BookOpen, Tv, Music, Clapperboard } from 'lucide-react';
 import Link from 'next/link';
-
-interface MediaItem {
-  id: string;
-  title: string;
-  category: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { MediaItem } from '@/lib/types';
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   anime: { bg: 'bg-violet-500', text: 'text-violet-400', label: 'Anime' },

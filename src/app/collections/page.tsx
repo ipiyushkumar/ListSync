@@ -2,15 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Folder, Plus, Trash2, X, ChevronDown, ChevronRight, Search, GripVertical, FolderOpen } from 'lucide-react';
-
-interface MediaItem {
-  id: string;
-  title: string;
-  category: string;
-  posterUrl?: string;
-  rating?: number;
-  status: string;
-}
+import { MediaItem } from '@/lib/types';
 
 interface CollectionItem {
   id: string;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Star, ChevronDown, Check, Heart } from 'lucide-react';
+import { Star, ChevronDown, Check, Heart, Tag } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
 import { parseGenres } from '@/lib/utils';
@@ -24,6 +24,7 @@ export interface Media {
   externalSource?: string;
   airStatus?: string;
   notes?: string;
+  tags?: string;
   favorite?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -59,6 +60,7 @@ export default function MediaGridCard({
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const genres = parseGenres(item.genres);
+  const tags = parseGenres(item.tags);
   const isComplete = incrementDisabled ?? (item.totalEpisodes != null && item.currentEp >= item.totalEpisodes);
 
   useEffect(() => {
@@ -228,6 +230,20 @@ export default function MediaGridCard({
             ))}
             {genres.length > 2 && (
               <span className="px-1.5 py-0.5 text-gray-600 text-[10px]">+{genres.length - 2}</span>
+            )}
+          </div>
+        )}
+
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            <Tag className="w-3 h-3 text-accent mt-0.5 shrink-0" />
+            {tags.slice(0, 3).map((t) => (
+              <span key={t} className="px-1.5 py-0.5 bg-accent/10 text-accent rounded text-[10px] font-medium">
+                {t}
+              </span>
+            ))}
+            {tags.length > 3 && (
+              <span className="px-1.5 py-0.5 text-gray-600 text-[10px]">+{tags.length - 3}</span>
             )}
           </div>
         )}

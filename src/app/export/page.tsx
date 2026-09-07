@@ -2,26 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Download, Upload, FileJson, FileText, CheckCircle2, AlertTriangle, X } from 'lucide-react';
-
-interface MediaItem {
-  id: string;
-  title: string;
-  originalTitle?: string | null;
-  description?: string | null;
-  category: string;
-  posterUrl?: string | null;
-  releaseDate?: string | null;
-  totalEpisodes?: number | null;
-  currentEp?: number | null;
-  rating?: number | null;
-  status: string;
-  genres?: string | null;
-  platforms?: string | null;
-  externalId?: string | null;
-  externalSource?: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import { MediaItem } from '@/lib/types';
 
 interface ImportResult {
   imported: number;

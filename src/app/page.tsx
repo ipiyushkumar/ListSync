@@ -9,39 +9,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
-
-interface MediaItem {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  posterUrl: string | null;
-  currentEp: number;
-  totalEpisodes: number | null;
-  rating: number | null;
-  genres: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const CATEGORY_META: Record<string, { icon: LucideIcon; label: string }> = {
-  anime: { icon: Film, label: 'Anime' },
-  manhwa: { icon: BookOpen, label: 'Manhwa' },
-  movie: { icon: Clapperboard, label: 'Movies' },
-  tv: { icon: Tv, label: 'TV Shows' },
-  music: { icon: Music, label: 'Music' },
-};
-
-const STATUS_META: Record<string, { icon: LucideIcon; color: string; dot: string }> = {
-  watching: { icon: Eye, color: 'text-emerald-400', dot: 'bg-emerald-400' },
-  reading: { icon: BookOpen, color: 'text-emerald-400', dot: 'bg-emerald-400' },
-  listening: { icon: Music, color: 'text-emerald-400', dot: 'bg-emerald-400' },
-  completed: { icon: CheckCircle2, color: 'text-blue-400', dot: 'bg-blue-400' },
-  planned: { icon: Clock, color: 'text-gray-400', dot: 'bg-gray-400' },
-  dropped: { icon: Ban, color: 'text-red-400', dot: 'bg-red-400' },
-  'on-hold': { icon: Pause, color: 'text-amber-400', dot: 'bg-amber-400' },
-  on_hold: { icon: Pause, color: 'text-amber-400', dot: 'bg-amber-400' },
-};
+import { MediaItem } from '@/lib/types';
+import { CATEGORY_META, STATUS_META, normalizeStatus, getStatusMeta, getCategoryMeta } from '@/lib/constants';
 
 function MiniBar({ value, max }: { value: number; max: number }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
@@ -426,7 +395,7 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-3 overflow-x-auto pb-1">
             {watchingItems.map(item => {
-              const catMeta = CATEGORY_META[item.category] || { icon: Clapperboard, label: item.category };
+              const catMeta = getCategoryMeta(item.category) || { icon: Clapperboard, label: item.category };
               const CatIcon = catMeta.icon;
               const pct = item.totalEpisodes ? Math.round(((item.currentEp || 0) / item.totalEpisodes) * 100) : 0;
               return (
@@ -533,7 +502,7 @@ export default function Dashboard() {
             {Object.entries(stats.byCategory)
               .sort((a, b) => b[1] - a[1])
               .map(([cat, count]) => {
-                const meta = CATEGORY_META[cat] || { icon: Clapperboard, label: cat };
+                const meta = getCategoryMeta(cat) || { icon: Clapperboard, label: cat };
                 const Icon = meta.icon;
                 return (
                   <div key={cat} className="flex items-center gap-3">
@@ -564,7 +533,7 @@ export default function Dashboard() {
             {Object.entries(stats.byStatus)
               .sort((a, b) => b[1] - a[1])
               .map(([status, count]) => {
-                const meta = STATUS_META[status] || { color: 'text-gray-400', dot: 'bg-gray-400' };
+                const meta = getStatusMeta(status) || { color: 'text-gray-400', dot: 'bg-gray-400' };
                 return (
                   <div key={status} className="flex items-center justify-between py-1">
                     <div className="flex items-center gap-2">
@@ -611,8 +580,8 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {recentItems.map(item => {
-                  const statusMeta = STATUS_META[item.status] || { dot: 'bg-gray-400', color: 'text-gray-400' };
-                  const catMeta = CATEGORY_META[item.category] || { icon: Clapperboard, label: item.category };
+                  const statusMeta = getStatusMeta(item.status) || { dot: 'bg-gray-400', color: 'text-gray-400' };
+                  const catMeta = getCategoryMeta(item.category) || { icon: Clapperboard, label: item.category };
                   const CatIcon = catMeta.icon;
                   const score = item.rating ? (item.rating > 10 ? (item.rating / 10).toFixed(1) : item.rating.toFixed(1)) : '—';
                   const progress = item.totalEpisodes ? `${item.currentEp || 0}/${item.totalEpisodes}` : '—';
@@ -664,7 +633,7 @@ export default function Dashboard() {
                           {statusMenu === item.id && (
                             <div className="absolute z-50 top-full left-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[120px]">
                               {Object.keys(STATUS_META).filter(s => !['on_hold', 'on-hold'].includes(s) || s === item.status?.replace('_', '-')).map(s => {
-                                const sm = STATUS_META[s];
+                                const sm = getStatusMeta(s);
                                 return (
                                   <button
                                     key={s}

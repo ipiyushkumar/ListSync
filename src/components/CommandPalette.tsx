@@ -7,14 +7,7 @@ import {
   Settings, Activity, ArrowRight, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-
-interface MediaItem {
-  id: string;
-  title: string;
-  category: string;
-  status: string;
-  posterUrl: string | null;
-}
+import { MediaItem } from '@/lib/types';
 
 interface Command {
   id: string;

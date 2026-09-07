@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { normalizeStatus } from '@/lib/constants';
 
 // GET /api/media/[id]
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -24,7 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       'title', 'originalTitle', 'description', 'category',
       'posterUrl', 'releaseDate', 'totalEpisodes', 'currentEp',
       'rating', 'status', 'genres', 'platforms',
-      'externalId', 'externalSource', 'airStatus', 'notes', 'favorite',
+      'externalId', 'externalSource', 'airStatus', 'notes', 'favorite', 'tags',
     ];
 
     const data: Record<string, unknown> = {};
@@ -35,7 +36,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
     // Normalize status to DB canonical form
     if (typeof data.status === 'string') {
-      data.status = data.status === 'on-hold' ? 'on_hold' : data.status;
+      data.status = normalizeStatus(data.status);
     }
 
     const media = await prisma.media.update({ where: { id }, data });

@@ -12,6 +12,7 @@ import MediaGridCard from './MediaGridCard';
 import MediaListRow from './MediaListRow';
 import MediaDetailModal from './MediaDetailModal';
 import { parseGenres } from '@/lib/utils';
+import { STATUS_META as BASE_STATUS_META, getStatusMeta, normalizeStatus } from '@/lib/constants';
 import type { Media } from './MediaGridCard';
 import Toast from '../Toast';
 
@@ -41,15 +42,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'progress', label: 'Progress' },
 ];
 
-const STATUS_META: Record<string, { color: string; bgColor: string; dotColor: string }> = {
-  watching: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', dotColor: 'bg-emerald-400' },
-  reading: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', dotColor: 'bg-emerald-400' },
-  listening: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', dotColor: 'bg-emerald-400' },
-  completed: { color: 'text-blue-400', bgColor: 'bg-blue-500/10', dotColor: 'bg-blue-400' },
-  planned: { color: 'text-gray-400', bgColor: 'bg-gray-500/10', dotColor: 'bg-gray-400' },
-  dropped: { color: 'text-red-400', bgColor: 'bg-red-500/10', dotColor: 'bg-red-400' },
-  'on-hold': { color: 'text-amber-400', bgColor: 'bg-amber-500/10', dotColor: 'bg-amber-400' },
-};
+// Shell-specific status metadata with additional styling (uses centralized constants as base)
 
 /* ─── Main Shell ─────────────────────────────────────────── */
 
@@ -64,8 +57,6 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<string>('all');
 
-  // Normalize on-hold (hyphen) to on_hold (underscore) to match DB canonical form
-  const normalizeStatus = (s: string) => s === 'on-hold' ? 'on_hold' : s;
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('recent');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -286,7 +277,7 @@ export default function MediaPageShell({ config }: { config: MediaPageConfig }) 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard label="Total" value={stats.total} icon={<Icon className="w-4 h-4" />} accent />
         {statusFilters.filter((s) => s !== 'all').map((status) => {
-          const meta = STATUS_META[status];
+          const meta = getStatusMeta(status);
           return (
             <StatCard
               key={status}

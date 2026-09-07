@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { normalizeStatus } from '@/lib/constants';
 
 // GET /api/media
 export async function GET(request: NextRequest) {
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, string> = {};
     if (category) where.category = category;
-    if (status) where.status = status === 'on-hold' ? 'on_hold' : status;
+    if (status) where.status = normalizeStatus(status);
 
     const media = await prisma.media.findMany({
       where,
@@ -23,11 +24,6 @@ export async function GET(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Failed to fetch media' }, { status: 500 });
   }
-}
-
-// Normalize status to DB canonical form (on-hold → on_hold)
-function normalizeStatus(s: string): string {
-  return s === 'on-hold' ? 'on_hold' : s;
 }
 
 // POST /api/media

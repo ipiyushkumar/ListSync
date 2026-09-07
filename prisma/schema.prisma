@@ -25,6 +25,7 @@ model Media {
   externalId    String?  // ID from external API (MAL, AniList, TMDB, etc.)
   externalSource String? // jikan, anilist, tmdb
   notes         String?  // personal notes about the media
+  tags          String?  // custom tags (comma-separated)
   favorite      Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

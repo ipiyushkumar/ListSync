@@ -6,6 +6,7 @@ import {
   Check, Loader2, Sparkles, Film,
 } from 'lucide-react';
 import Toast from '@/components/Toast';
+import { CATEGORY_META as BASE_CATEGORY_META } from '@/lib/constants';
 
 interface Platform {
   name: string;
@@ -55,6 +56,7 @@ interface LibraryEntry {
   externalSource?: string;
 }
 
+// Search-specific category metadata with text-based colors and Sparkles icon for anime
 const CATEGORY_META: Record<string, { label: string; icon: typeof Film; color: string; bg: string }> = {
   anime: { label: 'Anime', icon: Sparkles, color: 'text-accent', bg: 'bg-accent/10' },
   manhwa: { label: 'Manhwa', icon: BookOpen, color: 'text-blue-400', bg: 'bg-blue-500/10' },
